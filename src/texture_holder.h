@@ -19,8 +19,9 @@ class TextureHolder {
     TextureDescriptor textureDesc;
     TextureView textureView = nullptr;
     Sampler sampler = nullptr;
+    uvec3 size;
 
-    void Initialize(Device &device, glm::uvec3 size, bool is3D, bool shaderWrite);
+    void Initialize(Device &device, uvec3 size, bool is3D, bool shaderWrite);
     // 8-BIT NEEDS TO CHANGE if format changes
     void WriteToTexture(Queue&, const std::vector<uint8_t> &pixels);
     void Destroy();

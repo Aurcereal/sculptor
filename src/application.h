@@ -65,5 +65,7 @@ class Application {
     uint32_t vertexCount;
     uint32_t indexCount;
 
+    ComputeShader testComputeShader;
+    TextureHolder testInputTexture;
     TextureHolder testTexture;
 };

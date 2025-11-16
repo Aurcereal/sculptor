@@ -329,6 +329,8 @@ bool Application::Initialize() {
 }
 
 void Application::Terminate() {
+    testTexture.Destroy();
+
     bindGroup.release();
 
     vertexBuffer.release();
@@ -459,7 +461,7 @@ void Application::InitializeRenderPipeline() {
     textureBindingLayout.texture.viewDimension = TextureViewDimension::_3D;
 
     BindGroupLayoutEntry &samplerBindingLayout = bindingLayoutEntries[2];
-    samplerBindingLayout.binding =2 ;
+    samplerBindingLayout.binding = 2 ;
     samplerBindingLayout.visibility = ShaderStage::Fragment;
     samplerBindingLayout.sampler.type = SamplerBindingType::Filtering;
 
@@ -518,6 +520,8 @@ void Application::InitializeRenderPipeline() {
         }
     }
     testTexture.WriteToTexture(queue, pixels);
+
+    // TODO: init test input texture (unused for now) and compute shader then dispatch all here and generate tex to use using compute shader
 
 }
 

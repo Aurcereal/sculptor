@@ -5,7 +5,8 @@ TextureHolder::TextureHolder() {}
 void TextureHolder::Initialize(Device &device, glm::uvec3 size, bool is3D, bool shaderWrite) {
     // size 256, 256, 1, dimension was 2d, format was rgba8unorm, try that and then go to like r32float
     textureDesc.dimension = is3D ? TextureDimension::_3D : TextureDimension::_2D;
-    textureDesc.size = {size.x, size.y, size.y}; // TODO: Parametr
+    textureDesc.size = {size.x, size.y, size.y};
+    this->size = size;
     textureDesc.mipLevelCount = 1;
     textureDesc.sampleCount = 1;
     textureDesc.format = TextureFormat::RGBA8Unorm; // 8 bits each col
