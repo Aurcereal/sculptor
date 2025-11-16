@@ -14,6 +14,7 @@
 
 #include "camera.h"
 #include "texture_holder.h"
+#include "compute_shader.h"
 
 using namespace wgpu;
 using namespace glm;

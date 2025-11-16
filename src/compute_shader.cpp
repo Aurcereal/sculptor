@@ -50,11 +50,14 @@ void ComputeShader::InitBindGroups(Device &device, TextureHolder &inputTexture, 
 
 void ComputeShader::Initialize(Device &device, TextureHolder &inputTexture, TextureHolder &outputTexture) {
     #ifdef RESOURCE_DIR
-    ShaderModule computeShaderModule = ResourceManager::LoadShaderModule(RESOURCE_DIR "/test_compute.wgsl");
+    ShaderModule computeShaderModule = ResourceManager::LoadShaderModule(RESOURCE_DIR "/test_compute.wgsl", device);
     #else
     ShaderModule computeShaderModule = nullptr;
     std::cerr << "RESOURCE_DIR Undefined!" << std::endl;
     #endif
+
+    InitBindGroupLayout(device);
+    InitBindGroups(device, inputTexture, outputTexture);
 
     PipelineLayoutDescriptor pipelineLayoutDesc;
     pipelineLayoutDesc.bindGroupLayoutCount = 1;
@@ -66,12 +69,9 @@ void ComputeShader::Initialize(Device &device, TextureHolder &inputTexture, Text
     computePipelineDesc.compute.module = computeShaderModule;
     computePipelineDesc.layout = pipelineLayout;
     computePipeline = device.createComputePipeline(computePipelineDesc);
-
-    InitBindGroupLayout(device);
-    InitBindGroups(device, inputTexture, outputTexture);
 }
 
-void ComputeShader::Dispatch(CommandEncoder &encoder, uvec3 jobSize) {
+void ComputeShader::Dispatch(Queue &queue, CommandEncoder &encoder, uvec3 jobSize) {
     ComputePassDescriptor computePassDesc;
     computePassDesc.timestampWrites = nullptr;
     ComputePassEncoder computePass = encoder.beginComputePass(computePassDesc);
@@ -83,8 +83,24 @@ void ComputeShader::Dispatch(CommandEncoder &encoder, uvec3 jobSize) {
     uvec3 workGroupCount = (jobSize + workGroupSize - uvec3(1)) / workGroupSize;
 
     computePass.dispatchWorkgroups(workGroupCount.x, workGroupCount.y, workGroupCount.z);
+
+    computePass.end();
+
+    CommandBufferDescriptor cmdBufferDescriptor = {};
+    cmdBufferDescriptor.label = "Compute shader command";
+    CommandBuffer command = encoder.finish(cmdBufferDescriptor);
+    encoder.release();
+
+    // Queue draw command
+    queue.submit(1, &command);
+    command.release();
+
+    #ifndef WEBGPU_BACKEND_WGPU
+    wgpuComputePassEncoderRelease(computePass);
+    #endif
 }
 
 void ComputeShader::Destroy() {
     bindGroupLayout.release();
+    pipelineLayout.release();
 }

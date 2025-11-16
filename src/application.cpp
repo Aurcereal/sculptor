@@ -322,6 +322,27 @@ bool Application::Initialize() {
 
     InitializeRenderPipeline();
 
+    testTexture.Initialize(device, uvec3(256), true, true);
+    uint32_t dim = 256;
+    vector<uint8_t> pixels(4 * dim * dim * dim);
+    for(uint32_t i = 0; i < dim; ++i) {
+        for(uint32_t j = 0; j<dim; ++j) {
+            for(uint32_t k=0; k<dim; ++k) {
+                uint8_t *p = &pixels[4 * (j + i * dim + k * dim * dim)];
+                p[0] = (uint8_t) i;
+                p[1] = (uint8_t) j;
+                p[2] = (uint8_t) k;
+                p[3] = 255;
+            }
+        }
+    }
+    testTexture.WriteToTexture(queue, pixels);
+
+    testInputTexture.Initialize(device, uvec3(256), true, true);
+    testComputeShader.Initialize(device, testInputTexture, testTexture);
+    auto encoder = device.createCommandEncoder(Default);
+    testComputeShader.Dispatch(queue, encoder, uvec3(256));
+
     InitializeBuffers();
     InitializeBindGroups();
 
@@ -330,6 +351,8 @@ bool Application::Initialize() {
 
 void Application::Terminate() {
     testTexture.Destroy();
+    testInputTexture.Destroy();
+    testComputeShader.Destroy();
 
     bindGroup.release();
 
@@ -504,24 +527,6 @@ void Application::InitializeRenderPipeline() {
     pipeline = device.createRenderPipeline(pipelineDesc);
 
     shaderModule.release();
-
-    testTexture.Initialize(device, uvec3(256), true, true);
-    uint32_t dim = 256;
-    vector<uint8_t> pixels(4 * dim * dim * dim);
-    for(uint32_t i = 0; i < dim; ++i) {
-        for(uint32_t j = 0; j<dim; ++j) {
-            for(uint32_t k=0; k<dim; ++k) {
-                uint8_t *p = &pixels[4 * (j + i * dim + k * dim * dim)];
-                p[0] = (uint8_t) i;
-                p[1] = (uint8_t) j;
-                p[2] = (uint8_t) k;
-                p[3] = 255;
-            }
-        }
-    }
-    testTexture.WriteToTexture(queue, pixels);
-
-    // TODO: init test input texture (unused for now) and compute shader then dispatch all here and generate tex to use using compute shader
 
 }
 
