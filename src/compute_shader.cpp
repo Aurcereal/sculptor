@@ -22,7 +22,7 @@ void ComputeShader::InitBindGroupLayout(Device &device) {
     bindings[2].visibility = ShaderStage::Compute;
     bindings[2].storageTexture.access = StorageTextureAccess::WriteOnly;
     bindings[2].storageTexture.format = TextureFormat::RGBA8Unorm;
-    bindings[2].texture.viewDimension = TextureViewDimension::_3D;
+    bindings[2].storageTexture.viewDimension = TextureViewDimension::_3D;
 
     BindGroupLayoutDescriptor bindGroupLayoutDesc;
     bindGroupLayoutDesc.entryCount = (uint32_t) bindings.size();
@@ -79,7 +79,7 @@ void ComputeShader::Dispatch(Queue &queue, CommandEncoder &encoder, uvec3 jobSiz
     computePass.setPipeline(computePipeline);
     computePass.setBindGroup(0, bindGroup, 0, nullptr);
 
-    const uvec3 workGroupSize = uvec3(8); // TODO: can it read shader or cmake or smth
+    const uvec3 workGroupSize = uvec3(4); // TODO: can it read shader or cmake or smth
     uvec3 workGroupCount = (jobSize + workGroupSize - uvec3(1)) / workGroupSize;
 
     computePass.dispatchWorkgroups(workGroupCount.x, workGroupCount.y, workGroupCount.z);
