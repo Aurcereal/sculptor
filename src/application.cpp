@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "webgpu_utils.h"
 #include "resource_manager.h"
+#include "shader_parameter.h"
 
 using namespace glm;
 using namespace wgpu;
@@ -337,9 +338,20 @@ bool Application::Initialize() {
         }
     }
     testTexture.WriteToTexture(queue, pixels);
-
     testInputTexture.Initialize(device, uvec3(256), true, true);
-    testComputeShader.Initialize(device, testInputTexture, testTexture);
+
+    vector<ShaderParameter::Parameter> computeShaderParams(3);
+    
+    computeShaderParams[0].type = ShaderParameter::Type::TEXTURE;
+    computeShaderParams[0].parameterData.texture = {&testInputTexture, true, false};
+
+    computeShaderParams[1].type = ShaderParameter::Type::SAMPLER;
+    computeShaderParams[1].parameterData.sampler = {&testInputTexture};
+
+    computeShaderParams[2].type = ShaderParameter::Type::TEXTURE;
+    computeShaderParams[2].parameterData.texture = {&testTexture, true, true};
+
+    testComputeShader.Initialize(device, computeShaderParams);
     auto encoder = device.createCommandEncoder(Default);
     testComputeShader.Dispatch(queue, encoder, uvec3(256));
 

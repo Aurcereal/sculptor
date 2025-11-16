@@ -6,5 +6,8 @@
 @compute 
 @workgroup_size(4, 4, 4)
 fn computeStuff(@builtin(global_invocation_id) id: vec3<u32>) {
-    textureStore(outputTexture, id, vec4f(0.1, 0.9, 0.1, 1.0));
+    var p = (vec3f(id.xyz)/256.)*2.-1.; // Use uniforms
+    var r = length(p);
+    var amt = smoothstep(0.8, 0.9, r);
+    textureStore(outputTexture, id, vec4f(amt, 0.1, 0.1, 1.0));
 }
