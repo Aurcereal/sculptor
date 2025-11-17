@@ -31,7 +31,7 @@ void ComputeShader::InitBindGroupLayout(Device &device, const vector<ShaderParam
         bindings[i].visibility = ShaderStage::Compute; // UNIQUE TO COMPUTE
         switch(shaderParams[i].type) {
             case ShaderParameter::Type::TEXTURE:
-                ShaderParameter::Texture texParam = shaderParams[i].parameterData.texture;
+                ShaderParameter::UTexture texParam = shaderParams[i].parameterData.texture;
                 if(texParam.shaderWriteEnabled) {
                     bindings[i].storageTexture.access = StorageTextureAccess::WriteOnly;
                     bindings[i].storageTexture.format = TextureFormat::RGBA8Unorm; // TODO: make parameter
@@ -45,9 +45,14 @@ void ComputeShader::InitBindGroupLayout(Device &device, const vector<ShaderParam
                 bindings[i].sampler.type = SamplerBindingType::Filtering;
                 break;
             case ShaderParameter::Type::UNIFORM:
-                ShaderParameter::Uniform uniformParam = shaderParams[i].parameterData.uniform;
+                ShaderParameter::UUniform uniformParam = shaderParams[i].parameterData.uniform;
                 bindings[i].buffer.type = BufferBindingType::Uniform;
                 bindings[i].buffer.minBindingSize = uniformParam.size;
+                break;
+            case ShaderParameter::Type::BUFFER:
+                ShaderParameter::UBuffer bufferParam = shaderParams[i].parameterData.buffer;
+                bindings[i].buffer.type = 
+                    bufferParam.forWriting ? BufferBindingType::Storage : BufferBindingType::ReadOnlyStorage;
                 break;
         }
     }
@@ -71,23 +76,29 @@ void ComputeShader::InitBindGroups(Device &device, const vector<ShaderParameter:
 
     vector<BindGroupEntry> entries(shaderParams.size(), Default);
 
-    // can be generalized for regular shader
+    // can be generalized for regular shader too
     for(int i=0; i<entries.size(); i++) {
         entries[i].binding = i;
         switch(shaderParams[i].type) {
             case ShaderParameter::Type::TEXTURE:
-                ShaderParameter::Texture texParam = shaderParams[i].parameterData.texture;
+                ShaderParameter::UTexture texParam = shaderParams[i].parameterData.texture;
                 entries[i].textureView = texParam.textureHolder->textureView;
                 break;
             case ShaderParameter::Type::SAMPLER:
-                ShaderParameter::Sampler samplerParam = shaderParams[i].parameterData.sampler;
+                ShaderParameter::USampler samplerParam = shaderParams[i].parameterData.sampler;
                 entries[i].sampler = samplerParam.textureHolder->sampler;
                 break;
             case ShaderParameter::Type::UNIFORM:
-                ShaderParameter::Uniform uniformParam = shaderParams[i].parameterData.uniform;
+                ShaderParameter::UUniform uniformParam = shaderParams[i].parameterData.uniform;
                 entries[i].buffer = *(uniformParam.uniformBuffer);
                 entries[i].offset = 0;
                 entries[i].size = uniformParam.size;
+                break;
+            case ShaderParameter::Type::BUFFER:
+                ShaderParameter::UBuffer bufferParam = shaderParams[i].parameterData.buffer;
+                entries[i].buffer = *bufferParam.buffer;
+                entries[i].offset = 0;
+                entries[i].size = bufferParam.size;
                 break;
         }
     }

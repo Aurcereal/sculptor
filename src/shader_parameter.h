@@ -8,21 +8,28 @@ namespace ShaderParameter {
     enum class Type {
         TEXTURE,
         SAMPLER,
-        UNIFORM
+        UNIFORM,
+        BUFFER
     };
 
-    struct Texture {
+    struct UTexture {
         const TextureHolder *textureHolder;
         bool is3D;
         bool shaderWriteEnabled; // Texture can be write enabled but used for reading for this particular parameter, set to false in that case
     };
 
-    struct Sampler {
+    struct USampler {
         const TextureHolder *textureHolder;
     };
 
-    struct Uniform {
+    struct UUniform {
         const Buffer *uniformBuffer;
+        int size;
+    };
+
+    struct UBuffer {
+        const Buffer *buffer;
+        bool forWriting; // read-only OR write-only
         int size;
     };
 
@@ -31,9 +38,10 @@ namespace ShaderParameter {
     struct Parameter {
         Type type;
         union {
-            Texture texture;
-            Sampler sampler;
-            Uniform uniform;
+            UTexture texture;
+            USampler sampler;
+            UUniform uniform;
+            UBuffer buffer;
         } parameterData;
     };
 
