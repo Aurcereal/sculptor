@@ -110,9 +110,9 @@ void ComputeShader::InitBindGroups(Device &device, const vector<ShaderParameter:
     bindGroup = device.createBindGroup(bindGroupDesc);
 }
 
-void ComputeShader::Initialize(Device &device, const vector<ShaderParameter::Parameter> &shaderParams) {//TextureHolder &inputTexture, TextureHolder &outputTexture) {
+void ComputeShader::Initialize(Device &device, const vector<ShaderParameter::Parameter> &shaderParams, std::string path) {//TextureHolder &inputTexture, TextureHolder &outputTexture) {
     #ifdef RESOURCE_DIR
-    ShaderModule computeShaderModule = ResourceManager::LoadShaderModule(RESOURCE_DIR "/test_compute.wgsl", device);
+    ShaderModule computeShaderModule = ResourceManager::LoadShaderModule(RESOURCE_DIR + path, device);
     #else
     ShaderModule computeShaderModule = nullptr;
     std::cerr << "RESOURCE_DIR Undefined!" << std::endl;

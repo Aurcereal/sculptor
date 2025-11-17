@@ -22,7 +22,7 @@ class ComputeShader {
     public:
 
     inline ComputeShader() {}
-    void Initialize(Device &device, const vector<ShaderParameter::Parameter>&);//TextureHolder&, TextureHolder&);
+    void Initialize(Device &device, const vector<ShaderParameter::Parameter>&, std::string path);//TextureHolder&, TextureHolder&);
     void Dispatch(Device &device, Queue &queue, uvec3 size);
     void Destroy();
 

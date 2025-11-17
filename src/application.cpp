@@ -353,7 +353,7 @@ bool Application::Initialize() {
     //   {ShaderParameter::Type::TEXTURE, {&testTexture, true, true}}
     // };
 
-    testComputeShader.Initialize(device, computeShaderParams);
+    testComputeShader.Initialize(device, computeShaderParams, "/test_compute.wgsl");
     testComputeShader.Dispatch(device, queue, uvec3(256));
 
     InitializeBuffers();
@@ -707,16 +707,16 @@ void Application::InitializeBuffers() {
     indexCount = static_cast<uint32_t>(indices.size());
 
     // Vertex Buffer
-    vertexBuffer = createBuffer(device, positions.size() * sizeof(float), 
+    vertexBuffer = createBuffer(device, sizeof(float)*6*6,//positions.size() * sizeof(float), 
         BufferUsage::CopyDst | BufferUsage::Vertex | BufferUsage::Storage,
         false);
-    queue.writeBuffer(vertexBuffer.buffer, 0, positions.data(), vertexBuffer.size);
+    //queue.writeBuffer(vertexBuffer.buffer, 0, positions.data(), vertexBuffer.size);
 
     // Index Buffer
-    indexBuffer = createBuffer(device, indices.size()*sizeof(uint32_t),
+    indexBuffer = createBuffer(device, sizeof(uint32_t)*6,//indices.size()*sizeof(uint32_t),
         BufferUsage::CopyDst | BufferUsage::Index | BufferUsage::Storage,
         false);
-    queue.writeBuffer(indexBuffer.buffer, 0, indices.data(), indexBuffer.size);
+    //queue.writeBuffer(indexBuffer.buffer, 0, indices.data(), indexBuffer.size);
     
     // Atomic Count Buffer
     vector<uint32_t> counts = {0,0};
@@ -724,6 +724,8 @@ void Application::InitializeBuffers() {
         device, 2 * sizeof(uint32_t), 
         BufferUsage::CopyDst | BufferUsage::Storage, false);
     queue.writeBuffer(countBuffer.buffer, 0, counts.data(), countBuffer.size);
+
+    testComputeMeshGenerate();
 
     // Uniform Buffer
     BufferDescriptor uniformBufferDesc;
@@ -775,5 +777,7 @@ void Application::testComputeMeshGenerate() {
         SP::Parameter(SP::UBuffer{&indexBuffer, true}),
         SP::Parameter(SP::UBuffer{&countBuffer, true})
     };
-    meshGenerateShader.Initialize(device, params);
+    meshGenerateShader.Initialize(device, params, "/mesh_generate.wgsl");
+    meshGenerateShader.Dispatch(device, queue, uvec3(2,1,1));
+    meshGenerateShader.Destroy();
 }
