@@ -22,7 +22,7 @@ using namespace glm;
 class Application {
     public:
     
-    inline Application() : device(nullptr), queue(nullptr), surface(nullptr), pipeline(nullptr), vertexBuffer(nullptr), indexBuffer(nullptr), pipelineLayout(nullptr) {}
+    inline Application() : device(nullptr), queue(nullptr), surface(nullptr), pipeline(nullptr), pipelineLayout(nullptr) {}
     bool Initialize(); // Was initialization succesful?
     void Terminate();
     void MainLoop(); // Draw frame and handle events
@@ -32,6 +32,7 @@ class Application {
     inline Queue& GetQueue() { return queue; }
 
     private:
+    void testComputeMeshGenerate();
     Camera camera;
 
     struct MyUniforms {
@@ -63,8 +64,8 @@ class Application {
     TextureView depthTextureView = nullptr;
 
     void InitializeBuffers();
-    Buffer vertexBuffer;
-    Buffer indexBuffer;
+    BufferHolder vertexBuffer;
+    BufferHolder indexBuffer;
     BufferHolder countBuffer;
     Buffer uniformBuffer = nullptr;
     uint32_t vertexCount;

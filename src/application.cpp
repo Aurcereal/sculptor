@@ -10,6 +10,7 @@
 using namespace glm;
 using namespace wgpu;
 using namespace std;
+namespace SP = ShaderParameter;
 
 // Almost identical to inspect adapter; I think the device is like what we use/our interface and the adapter is reality
 void inspectDevice(WGPUDevice device) {
@@ -340,11 +341,17 @@ bool Application::Initialize() {
     testTexture.WriteToTexture(queue, pixels);
     testInputTexture.Initialize(device, uvec3(256), true, true);
 
-    vector<ShaderParameter::Parameter> computeShaderParams = {
-      {ShaderParameter::Type::TEXTURE,  {&testInputTexture, true, false}},
-      {ShaderParameter::Type::SAMPLER, {&testInputTexture}},
-      {ShaderParameter::Type::TEXTURE, {&testTexture, true, true}}
+    vector<SP::Parameter> computeShaderParams = {
+      SP::Parameter(SP::UTexture{&testInputTexture, true, false}),
+      SP::Parameter(SP::USampler{&testInputTexture}),
+      SP::Parameter(SP::UTexture{&testTexture, true, true})
     };
+
+    // vector<ShaderParameter::Parameter> computeShaderParams = {
+    //   {ShaderParameter::Type::TEXTURE,  {&testInputTexture, true, false}},
+    //   {ShaderParameter::Type::SAMPLER, {&testInputTexture}},
+    //   {ShaderParameter::Type::TEXTURE, {&testTexture, true, true}}
+    // };
 
     testComputeShader.Initialize(device, computeShaderParams);
     testComputeShader.Dispatch(device, queue, uvec3(256));
@@ -362,8 +369,8 @@ void Application::Terminate() {
 
     bindGroup.release();
 
-    vertexBuffer.release();
-    indexBuffer.release();
+    vertexBuffer.buffer.release();
+    indexBuffer.buffer.release();
     uniformBuffer.release();
 
     pipelineLayout.release();
@@ -604,8 +611,8 @@ void Application::MainLoop() {
 
     // What to draw here
     renderPass.setPipeline(pipeline);
-    renderPass.setVertexBuffer(0, vertexBuffer, 0, vertexBuffer.getSize()); // Could change geo here
-    renderPass.setIndexBuffer(indexBuffer, IndexFormat::Uint32, 0, indexBuffer.getSize());
+    renderPass.setVertexBuffer(0, vertexBuffer.buffer, 0, vertexBuffer.size); // Could change geo here
+    renderPass.setIndexBuffer(indexBuffer.buffer, IndexFormat::Uint32, 0, indexBuffer.size);
     renderPass.setBindGroup(0, bindGroup, 0, nullptr);
     renderPass.drawIndexed(indexCount, 1, 0, 0, 0);
 
@@ -700,20 +707,16 @@ void Application::InitializeBuffers() {
     indexCount = static_cast<uint32_t>(indices.size());
 
     // Vertex Buffer
-    BufferDescriptor bufferDesc;
-    bufferDesc.size = positions.size() * sizeof(float);
-    bufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Vertex | BufferUsage::Storage;
-    bufferDesc.mappedAtCreation = false;
-    vertexBuffer = device.createBuffer(bufferDesc);
-    queue.writeBuffer(vertexBuffer, 0, positions.data(), bufferDesc.size);
+    vertexBuffer = createBuffer(device, positions.size() * sizeof(float), 
+        BufferUsage::CopyDst | BufferUsage::Vertex | BufferUsage::Storage,
+        false);
+    queue.writeBuffer(vertexBuffer.buffer, 0, positions.data(), vertexBuffer.size);
 
     // Index Buffer
-    BufferDescriptor indexBufferDesc;
-    indexBufferDesc.size = indices.size() * sizeof(uint32_t);
-    indexBufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Index | BufferUsage::Storage;
-    indexBufferDesc.mappedAtCreation = false;
-    indexBuffer = device.createBuffer(indexBufferDesc);
-    queue.writeBuffer(indexBuffer, 0, indices.data(), indexBufferDesc.size);
+    indexBuffer = createBuffer(device, indices.size()*sizeof(uint32_t),
+        BufferUsage::CopyDst | BufferUsage::Index | BufferUsage::Storage,
+        false);
+    queue.writeBuffer(indexBuffer.buffer, 0, indices.data(), indexBuffer.size);
     
     // Atomic Count Buffer
     vector<uint32_t> counts = {0,0};
@@ -726,7 +729,7 @@ void Application::InitializeBuffers() {
     BufferDescriptor uniformBufferDesc;
     uniformBufferDesc.size = sizeof(MyUniforms); // Aligned with 4 float
     uniformBufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Uniform;
-    bufferDesc.mappedAtCreation = false;
+    uniformBufferDesc.mappedAtCreation = false;
     uniformBuffer = device.createBuffer(uniformBufferDesc);
     MyUniforms uniforms;
     uniforms.time = 1.0f;
@@ -760,4 +763,17 @@ void Application::InitializeBindGroups() {
     bindGroupDesc.entryCount = static_cast<uint32_t>(bindings.size()); // Same as layout
     bindGroupDesc.entries = bindings.data();
     bindGroup = device.createBindGroup(bindGroupDesc);
+}
+
+
+
+void Application::testComputeMeshGenerate() {
+    ComputeShader meshGenerateShader;
+    
+    vector<SP::Parameter> params = {
+        SP::Parameter(SP::UBuffer{&vertexBuffer, true}),
+        SP::Parameter(SP::UBuffer{&indexBuffer, true}),
+        SP::Parameter(SP::UBuffer{&countBuffer, true})
+    };
+    meshGenerateShader.Initialize(device, params);
 }

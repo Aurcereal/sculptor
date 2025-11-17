@@ -15,8 +15,9 @@ void wgpuPollEvents(Device device, bool yieldToWebBrowser);
 uint32_t ceilToNextMultiple(uint32_t value, uint32_t step);
 
 struct BufferHolder {
+    //inline BufferHolder() {}
     Buffer buffer = nullptr;
-    uint size;
+    size_t size;
 };
 
-BufferHolder createBuffer(Device &device, uint size, WGPUBufferUsageFlags usage, bool mappedAtCreation);
+BufferHolder createBuffer(Device &device, size_t size, WGPUBufferUsageFlags usage, bool mappedAtCreation);

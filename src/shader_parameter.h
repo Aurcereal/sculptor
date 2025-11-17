@@ -19,19 +19,27 @@ namespace ShaderParameter {
         const TextureHolder *textureHolder;
         bool is3D;
         bool shaderWriteEnabled; // Texture can be write enabled but used for reading for this particular parameter, set to false in that case
+
+        //inline UTexture()
     };
 
     struct USampler {
         const TextureHolder *textureHolder;
+
+        //inline USampler(const TextureHolder *t) : textureHolder(t) {}
     };
 
     struct UUniform {
         const BufferHolder *uniformBufferHolder;
+
+        //inline UUniform(const BufferHolder *b) : uniformBufferHolder(b) {}
     };
 
     struct UBuffer {
         const BufferHolder *bufferHolder;
         bool forWriting; // read-only OR write-only
+
+        //inline UBuffer(const BufferHolder *b, bool fw) : bufferHolder(b), forWriting(fw) {}
     };
 
     // using ParameterData = std::variant<Texture, Uniform>;
@@ -43,7 +51,12 @@ namespace ShaderParameter {
             USampler sampler;
             UUniform uniform;
             UBuffer buffer;
-        } parameterData;
+        };
+
+        inline Parameter(UTexture tex) : type(Type::TEXTURE), texture(tex) {}
+        inline Parameter(USampler sam) : type(Type::SAMPLER), sampler(sam) {}
+        inline Parameter(UUniform uni) : type(Type::UNIFORM), uniform(uni) {}
+        inline Parameter(UBuffer buf) : type(Type::BUFFER), buffer(buf) {}
     };
 
     // inline static Type GetType(const Parameter& param) {
