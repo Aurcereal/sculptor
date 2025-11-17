@@ -13,6 +13,7 @@
 #include <vector>
 #include "texture_holder.h"
 #include "shader_parameter.h"
+#include "webgpu_utils.h"
 
 using namespace wgpu;
 using namespace std;
@@ -22,7 +23,7 @@ class ComputeShader {
 
     inline ComputeShader() {}
     void Initialize(Device &device, const vector<ShaderParameter::Parameter>&);//TextureHolder&, TextureHolder&);
-    void Dispatch(Queue &queue, CommandEncoder &encoder, uvec3 size);
+    void Dispatch(Device &device, Queue &queue, uvec3 size);
     void Destroy();
 
     private:

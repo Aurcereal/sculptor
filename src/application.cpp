@@ -340,20 +340,14 @@ bool Application::Initialize() {
     testTexture.WriteToTexture(queue, pixels);
     testInputTexture.Initialize(device, uvec3(256), true, true);
 
-    vector<ShaderParameter::Parameter> computeShaderParams(3);
-    
-    computeShaderParams[0].type = ShaderParameter::Type::TEXTURE;
-    computeShaderParams[0].parameterData.texture = {&testInputTexture, true, false};
-
-    computeShaderParams[1].type = ShaderParameter::Type::SAMPLER;
-    computeShaderParams[1].parameterData.sampler = {&testInputTexture};
-
-    computeShaderParams[2].type = ShaderParameter::Type::TEXTURE;
-    computeShaderParams[2].parameterData.texture = {&testTexture, true, true};
+    vector<ShaderParameter::Parameter> computeShaderParams = {
+      {ShaderParameter::Type::TEXTURE,  {&testInputTexture, true, false}},
+      {ShaderParameter::Type::SAMPLER, {&testInputTexture}},
+      {ShaderParameter::Type::TEXTURE, {&testTexture, true, true}}
+    };
 
     testComputeShader.Initialize(device, computeShaderParams);
-    auto encoder = device.createCommandEncoder(Default);
-    testComputeShader.Dispatch(queue, encoder, uvec3(256));
+    testComputeShader.Dispatch(device, queue, uvec3(256));
 
     InitializeBuffers();
     InitializeBindGroups();
@@ -708,7 +702,7 @@ void Application::InitializeBuffers() {
     // Vertex Buffer
     BufferDescriptor bufferDesc;
     bufferDesc.size = positions.size() * sizeof(float);
-    bufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Vertex;
+    bufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Vertex | BufferUsage::Storage;
     bufferDesc.mappedAtCreation = false;
     vertexBuffer = device.createBuffer(bufferDesc);
     queue.writeBuffer(vertexBuffer, 0, positions.data(), bufferDesc.size);
@@ -716,11 +710,18 @@ void Application::InitializeBuffers() {
     // Index Buffer
     BufferDescriptor indexBufferDesc;
     indexBufferDesc.size = indices.size() * sizeof(uint32_t);
-    indexBufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Index;
+    indexBufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Index | BufferUsage::Storage;
     indexBufferDesc.mappedAtCreation = false;
     indexBuffer = device.createBuffer(indexBufferDesc);
     queue.writeBuffer(indexBuffer, 0, indices.data(), indexBufferDesc.size);
     
+    // Atomic Count Buffer
+    vector<uint32_t> counts = {0,0};
+    countBuffer = createBuffer(
+        device, 2 * sizeof(uint32_t), 
+        BufferUsage::CopyDst | BufferUsage::Storage, false);
+    queue.writeBuffer(countBuffer.buffer, 0, counts.data(), countBuffer.size);
+
     // Uniform Buffer
     BufferDescriptor uniformBufferDesc;
     uniformBufferDesc.size = sizeof(MyUniforms); // Aligned with 4 float

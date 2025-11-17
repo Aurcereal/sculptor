@@ -3,6 +3,9 @@
 #include <variant>
 #include <iostream>
 #include "texture_holder.h"
+#include "webgpu_utils.h"
+
+struct BufferHolder;
 
 namespace ShaderParameter {
     enum class Type {
@@ -23,14 +26,12 @@ namespace ShaderParameter {
     };
 
     struct UUniform {
-        const Buffer *uniformBuffer;
-        int size;
+        const BufferHolder *uniformBufferHolder;
     };
 
     struct UBuffer {
-        const Buffer *buffer;
+        const BufferHolder *bufferHolder;
         bool forWriting; // read-only OR write-only
-        int size;
     };
 
     // using ParameterData = std::variant<Texture, Uniform>;

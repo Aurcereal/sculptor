@@ -9,6 +9,10 @@
 using namespace glm;
 
 class MarchingCubesManager {
+    public:
+    void Initialize();
+    void Run();
+
     private:
 
     uint textureResolution;

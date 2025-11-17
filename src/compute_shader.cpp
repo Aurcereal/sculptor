@@ -47,7 +47,7 @@ void ComputeShader::InitBindGroupLayout(Device &device, const vector<ShaderParam
             case ShaderParameter::Type::UNIFORM:
                 ShaderParameter::UUniform uniformParam = shaderParams[i].parameterData.uniform;
                 bindings[i].buffer.type = BufferBindingType::Uniform;
-                bindings[i].buffer.minBindingSize = uniformParam.size;
+                bindings[i].buffer.minBindingSize = uniformParam.uniformBufferHolder->size;
                 break;
             case ShaderParameter::Type::BUFFER:
                 ShaderParameter::UBuffer bufferParam = shaderParams[i].parameterData.buffer;
@@ -90,15 +90,15 @@ void ComputeShader::InitBindGroups(Device &device, const vector<ShaderParameter:
                 break;
             case ShaderParameter::Type::UNIFORM:
                 ShaderParameter::UUniform uniformParam = shaderParams[i].parameterData.uniform;
-                entries[i].buffer = *(uniformParam.uniformBuffer);
+                entries[i].buffer = uniformParam.uniformBufferHolder->buffer;
                 entries[i].offset = 0;
-                entries[i].size = uniformParam.size;
+                entries[i].size = uniformParam.uniformBufferHolder->size;
                 break;
             case ShaderParameter::Type::BUFFER:
                 ShaderParameter::UBuffer bufferParam = shaderParams[i].parameterData.buffer;
-                entries[i].buffer = *bufferParam.buffer;
+                entries[i].buffer = bufferParam.bufferHolder->buffer;
                 entries[i].offset = 0;
-                entries[i].size = bufferParam.size;
+                entries[i].size = bufferParam.bufferHolder->size;
                 break;
         }
     }
@@ -133,7 +133,9 @@ void ComputeShader::Initialize(Device &device, const vector<ShaderParameter::Par
     computePipeline = device.createComputePipeline(computePipelineDesc);
 }
 
-void ComputeShader::Dispatch(Queue &queue, CommandEncoder &encoder, uvec3 jobSize) {
+void ComputeShader::Dispatch(Device &device, Queue &queue, uvec3 jobSize) {
+    auto encoder = device.createCommandEncoder(Default);
+
     ComputePassDescriptor computePassDesc;
     computePassDesc.timestampWrites = nullptr;
     ComputePassEncoder computePass = encoder.beginComputePass(computePassDesc);

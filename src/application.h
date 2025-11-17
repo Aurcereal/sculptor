@@ -28,6 +28,9 @@ class Application {
     void MainLoop(); // Draw frame and handle events
     bool IsRunning(); // Returns true as long as main loop should keep going
 
+    inline Device& GetDevice() { return device; }
+    inline Queue& GetQueue() { return queue; }
+
     private:
     Camera camera;
 
@@ -62,6 +65,7 @@ class Application {
     void InitializeBuffers();
     Buffer vertexBuffer;
     Buffer indexBuffer;
+    BufferHolder countBuffer;
     Buffer uniformBuffer = nullptr;
     uint32_t vertexCount;
     uint32_t indexCount;
