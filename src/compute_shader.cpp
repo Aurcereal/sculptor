@@ -116,7 +116,7 @@ void ComputeShader::Initialize(Device &device, const vector<ShaderParameter::Par
     pipelineLayout = device.createPipelineLayout(pipelineLayoutDesc);
 
     ComputePipelineDescriptor computePipelineDesc = Default;
-    computePipelineDesc.compute.entryPoint = "computeStuff";
+    computePipelineDesc.compute.entryPoint = "main";
     computePipelineDesc.compute.module = computeShaderModule;
     computePipelineDesc.layout = pipelineLayout;
     computePipeline = device.createComputePipeline(computePipelineDesc);
