@@ -691,32 +691,20 @@ RequiredLimits Application::GetRequiredLimits(Adapter adapter) const {
 }
 
 void Application::InitializeBuffers() {
-    vector<float> positions = {
-        -1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f
-    };
-    vertexCount = static_cast<uint32_t>(positions.size())/6;
+    const uint tempTriCount = 128;
 
     // indices must be uint16_t or uint32_t
-    vector<uint32_t> indices = {
-        0, 1, 3,
-        0, 3, 2
-    };
-    indexCount = static_cast<uint32_t>(indices.size());
+    indexCount = tempTriCount*3;//static_cast<uint32_t>(indices.size());
 
     // Vertex Buffer
-    vertexBuffer = createBuffer(device, sizeof(float)*6*6,//positions.size() * sizeof(float), 
+    vertexBuffer = createBuffer(device, sizeof(float)*6*3* tempTriCount,//positions.size() * sizeof(float), 
         BufferUsage::CopyDst | BufferUsage::Vertex | BufferUsage::Storage,
         false);
-    //queue.writeBuffer(vertexBuffer.buffer, 0, positions.data(), vertexBuffer.size);
 
     // Index Buffer
-    indexBuffer = createBuffer(device, sizeof(uint32_t)*6,//indices.size()*sizeof(uint32_t),
+    indexBuffer = createBuffer(device, sizeof(uint32_t)*3* tempTriCount,//indices.size()*sizeof(uint32_t),
         BufferUsage::CopyDst | BufferUsage::Index | BufferUsage::Storage,
         false);
-    //queue.writeBuffer(indexBuffer.buffer, 0, indices.data(), indexBuffer.size);
     
     // Atomic Count Buffer
     vector<uint32_t> counts = {0,0};
@@ -770,12 +758,15 @@ void Application::InitializeBindGroups() {
 
 
 void Application::testComputeMeshGenerate() {
+    // Temp placement oc, needs textures to be generated
     ComputeShader meshGenerateShader;
     
     vector<SP::Parameter> params = {
         SP::Parameter(SP::UBuffer{&vertexBuffer, true}),
         SP::Parameter(SP::UBuffer{&indexBuffer, true}),
-        SP::Parameter(SP::UBuffer{&countBuffer, true})
+        SP::Parameter(SP::UBuffer{&countBuffer, true}),
+        SP::Parameter(SP::UTexture{&testInputTexture, true, false}),
+        SP::Parameter(SP::USampler{&testInputTexture})
     };
     meshGenerateShader.Initialize(device, params, "/mesh_generate.wgsl");
     meshGenerateShader.Dispatch(device, queue, uvec3(2,1,1));

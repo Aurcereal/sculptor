@@ -2,6 +2,9 @@
 @group(0) @binding(1) var<storage, read_write> outputIndices: array<u32>; 
 @group(0) @binding(2) var<storage, read_write> countBuffers: array<atomic<u32>>; // (vertCount, indexCount)
 
+@group(0) @binding(3) var fieldTexture: texture_3d<f32>;
+@group(0) @binding(4) var fieldSampler: sampler;
+
 const VERTEX_SIZE : u32 = 6u; // 6 Floats per Vertex
 fn AddVertex(bufferIndex: u32, pos: vec3f) {
     outputVertices[bufferIndex + 0] = pos.x;
@@ -32,17 +35,22 @@ fn AddVerticesAndTriangle(v1: vec3f, v2: vec3f, v3: vec3f) {
 @compute 
 @workgroup_size(4, 4, 4) // TODO: make 3D
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
-    var i = id.x;
-    if(id.y + id.z != 0u) { return; }
-    if(i == 1u) {
-        let p1 = vec3f(-1.0, -1.0, 0.0);
-        let p2 = vec3f(1.0, -1.0, 0.0);
-        let p3 = vec3f(-1.0, 1.0, 0.0);
-        AddVerticesAndTriangle(p1, p2, p3);
-    } else if(i==0u) {
-        let p1 = vec3f(1.0, 1.0, 0.0);
-        let p2 = vec3f(1.0, -1.0, 0.0);
-        let p3 = vec3f(-1.0, 1.0, 0.0);
-        AddVerticesAndTriangle(p1, p2, p3);
-    }
+    // var i = id.x;
+    // if(id.y + id.z != 0u) { return; }
+    // if(i == 1u) {
+    //     let p1 = vec3f(-1.0, -1.0, 0.0);
+    //     let p2 = vec3f(1.0, -1.0, 0.0);
+    //     let p3 = vec3f(-1.0, 1.0, 0.0);
+    //     AddVerticesAndTriangle(p1, p2, p3);
+    // } else if(i==0u) {
+    //     let p1 = vec3f(1.0, 1.0, 0.0);
+    //     let p2 = vec3f(1.0, -1.0, 0.0);
+    //     let p3 = vec3f(-1.0, 1.0, 0.0);
+    //     AddVerticesAndTriangle(p1, p2, p3);
+    // }
+    var placementPos = vec3f(id);
+    var p1 = placementPos + vec3f(-0.2,-0.2,0.0);
+    var p2 = placementPos + vec3f(0.2,-0.2,0.0);
+    var p3 = placementPos + vec3f(-0.2,0.2,0.0);
+    AddVerticesAndTriangle(p1, p2, p3);
 }

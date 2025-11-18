@@ -68,7 +68,6 @@ class Application {
     BufferHolder indexBuffer;
     BufferHolder countBuffer;
     Buffer uniformBuffer = nullptr;
-    uint32_t vertexCount;
     uint32_t indexCount;
 
     ComputeShader testComputeShader;
