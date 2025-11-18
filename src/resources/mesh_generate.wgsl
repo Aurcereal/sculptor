@@ -11,7 +11,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let p1 = vec3f(-1.0, -1.0, 0.0);
         let p2 = vec3f(1.0, -1.0, 0.0);
         let p3 = vec3f(-1.0, 1.0, 0.0);
-        var vertIndex = 0u;//atomicAdd(&countBuffers[0], 9u);
+        var vertIndex = atomicAdd(&countBuffers[0], 18u);
 
         outputVertices[vertIndex + 0] = p1.x;
         outputVertices[vertIndex + 1] = p1.y;
@@ -32,7 +32,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         outputVertices[vertIndex + 16] = 0.;
         outputVertices[vertIndex + 17] = 0.;
 
-        var triIndex = 0u;//atomicAdd(&countBuffers[1], 3u);
+        var triIndex = atomicAdd(&countBuffers[1], 3u);
         outputIndices[triIndex + 0] = (vertIndex/6u) + 0;
         outputIndices[triIndex + 1] = (vertIndex/6u) + 1;
         outputIndices[triIndex + 2] = (vertIndex/6u) + 2;
@@ -40,7 +40,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let p1 = vec3f(1.0, 1.0, 0.0);
         let p2 = vec3f(1.0, -1.0, 0.0);
         let p3 = vec3f(-1.0, 1.0, 0.0);
-        var vertIndex = 18u;//atomicAdd(&countBuffers[0], 9u);
+        var vertIndex = atomicAdd(&countBuffers[0], 18u);
 
         outputVertices[vertIndex + 0] = p1.x;
         outputVertices[vertIndex + 1] = p1.y;
@@ -61,7 +61,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         outputVertices[vertIndex + 16] = 0.;
         outputVertices[vertIndex + 17] = 0.;
 
-        var triIndex = 3u;//atomicAdd(&countBuffers[1], 3u);
+        var triIndex = atomicAdd(&countBuffers[1], 3u);
         outputIndices[triIndex + 0] = (vertIndex/6u) + 0;
         outputIndices[triIndex + 1] = (vertIndex/6u) + 1;
         outputIndices[triIndex + 2] = (vertIndex/6u) + 2;
