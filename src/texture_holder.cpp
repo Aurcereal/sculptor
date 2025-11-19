@@ -13,7 +13,7 @@ void TextureHolder::Initialize(Device &device, glm::uvec3 size, bool is3D, bool 
     textureDesc.usage =
         TextureUsage::TextureBinding |  // Can sample in shader
         TextureUsage::CopyDst |          // Can go CPU -> GPU
-        (shaderWrite ? TextureUsage::StorageBinding : 0); // Can write to tex in shader
+        (shaderWrite ? TextureUsage::StorageBinding : 0); // Can write to tex in shader (StorageBinding needed anyways if compute shader)
     textureDesc.viewFormatCount = 0;
     textureDesc.viewFormats = nullptr;
 

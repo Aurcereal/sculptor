@@ -3,7 +3,7 @@
 
 using namespace wgpu;
 
-void Shader::Initialize(Device& device, const vector<ShaderParameter::Parameter>& shaderParams, TextureFormat surfaceFormat, std::string path) {
+void Shader::Initialize(Device& device, const vector<ShaderParameter::Parameter>& shaderParams, TextureFormat surfaceFormat, DepthTexture &depthTexture, std::string path) {
     RenderPipelineDescriptor pipelineDesc;
 
     #ifdef RESOURCE_DIR
@@ -56,34 +56,7 @@ void Shader::Initialize(Device& device, const vector<ShaderParameter::Parameter>
     fragmentState.targets = &colorTarget;
 
     pipelineDesc.fragment = &fragmentState; // Nullable since fragment state is optional
-
-    DepthStencilState depthStencilState = Default;
-    depthStencilState.depthCompare = CompareFunction::Less;
-    depthStencilState.depthWriteEnabled = true;
-    TextureFormat depthTextureFormat = TextureFormat::Depth24Plus;
-    depthStencilState.format = depthTextureFormat;
-    depthStencilState.stencilReadMask = 0;
-    depthStencilState.stencilWriteMask = 0;
-    TextureDescriptor depthTextureDesc;
-    depthTextureDesc.dimension = TextureDimension::_2D;
-    depthTextureDesc.format = depthTextureFormat;
-    depthTextureDesc.mipLevelCount = 1;
-    depthTextureDesc.sampleCount = 1;
-    depthTextureDesc.size = {640, 480, 1};
-    depthTextureDesc.usage = TextureUsage::RenderAttachment;
-    depthTextureDesc.viewFormatCount = 1;
-    depthTextureDesc.viewFormats = (WGPUTextureFormat*) &depthTextureFormat;
-    depthTexture = device.createTexture(depthTextureDesc);
-    TextureViewDescriptor depthTextureViewDesc;
-    depthTextureViewDesc.aspect = TextureAspect::DepthOnly;
-    depthTextureViewDesc.baseArrayLayer = 0;
-    depthTextureViewDesc.arrayLayerCount = 1;
-    depthTextureViewDesc.baseMipLevel = 0;
-    depthTextureViewDesc.mipLevelCount = 1;
-    depthTextureViewDesc.dimension = TextureViewDimension::_2D;
-    depthTextureViewDesc.format = depthTextureFormat;
-    depthTextureView = depthTexture.createView(depthTextureViewDesc);
-    pipelineDesc.depthStencil = &depthStencilState; // Configure ZBuffer test
+    pipelineDesc.depthStencil = &depthTexture.depthStencilState; // Configure ZBuffer test
 
     // You can have multiple fragments per pixel and avg the result into a pixel
     pipelineDesc.multisample.count = 1; // But we won't do multisampling
@@ -100,7 +73,8 @@ void Shader::Initialize(Device& device, const vector<ShaderParameter::Parameter>
 
     InitBindGroups(device, shaderParams);
 
-    VertexBufferLayout vertexBufferLayout = InitVertexLayout();
+    vector<VertexAttribute> vertexAttribs;
+    VertexBufferLayout vertexBufferLayout = InitVertexLayout(vertexAttribs);
     pipelineDesc.vertex.bufferCount = 1;
     pipelineDesc.vertex.buffers = &vertexBufferLayout;
     
@@ -109,11 +83,11 @@ void Shader::Initialize(Device& device, const vector<ShaderParameter::Parameter>
     shaderModule.release();
 }
 
-VertexBufferLayout Shader::InitVertexLayout() {
+VertexBufferLayout Shader::InitVertexLayout(vector<VertexAttribute> &vertexAttribs) {
     // [...] Describe Vertex Layout
     VertexBufferLayout vertexBufferLayout;
 
-    vector<VertexAttribute> vertexAttribs(2);
+    vertexAttribs.resize(2);
 
     vertexAttribs[0].shaderLocation = 0;
     vertexAttribs[0].format = VertexFormat::Float32x3;
@@ -138,7 +112,7 @@ VertexBufferLayout Shader::InitVertexLayout() {
 
     for(int i=0; i<bindings.size(); i++) {
         bindings[i].binding = i;
-        bindings[i].visibility = ShaderStage::Compute; // UNIQUE TO COMPUTE
+        bindings[i].visibility = ShaderStage::Vertex | ShaderStage::Fragment; // TODO: make you able to choose what you want them to be visible in
         switch(shaderParams[i].type) {
             case ShaderParameter::Type::TEXTURE:
                 ShaderParameter::UTexture texParam = shaderParams[i].texture;

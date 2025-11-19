@@ -12,28 +12,32 @@
 #include <glm/glm.hpp>
 
 #include "shader_parameter.h"
+#include "depth_texture.h"
 
 using namespace std;
 
 class Shader {
     public:
     
-    void Initialize(Device&, const vector<ShaderParameter::Parameter>&, TextureFormat, std::string path);
+    void Initialize(Device&, const vector<ShaderParameter::Parameter>&, TextureFormat, DepthTexture&, std::string path);
     void Destroy();
+    inline Shader() {}
+
+    RenderPipeline pipeline = nullptr;
+    BindGroup bindGroup = nullptr;
 
     private:
 
     void InitBindGroupLayout(Device &device, const vector<ShaderParameter::Parameter>&);
     void InitBindGroups(Device &device, const vector<ShaderParameter::Parameter>&);
-    VertexBufferLayout InitVertexLayout();
 
-    RenderPipeline pipeline;
-    PipelineLayout pipelineLayout;
+    VertexBufferLayout InitVertexLayout(vector<VertexAttribute>&);
+
+    PipelineLayout pipelineLayout = nullptr;
     
-    Texture depthTexture = nullptr;
     TextureView depthTextureView = nullptr;
 
     BindGroupLayout bindGroupLayout = nullptr;
-    BindGroup bindGroup = nullptr;
+    
     
 };

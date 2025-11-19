@@ -357,6 +357,15 @@ bool Application::Initialize() {
     std::cout << "Finished??: " << finished << std::endl;
 
     InitializeBuffers();
+
+    vector<SP::Parameter> testShaderParams = {
+      SP::Parameter(SP::UUniform{&uniformBuffer}),
+      SP::Parameter(SP::UTexture{&testTexture, true, false}),
+      SP::Parameter(SP::USampler{&testTexture})
+    };
+
+    depthTextureHolder.Initialize(device);
+    testShader.Initialize(device, testShaderParams, surfaceFormat, depthTextureHolder, "/test_shader.wgsl");
     //InitializeBindGroups();
 
     return true;
@@ -367,16 +376,11 @@ void Application::Terminate() {
     testInputTexture.Destroy();
     testComputeShader.Destroy();
 
-    bindGroup.release();
+    testShader.Destroy();
 
     vertexBuffer.buffer.release();
     indexBuffer.buffer.release();
-    uniformBuffer.release();
-
-    pipelineLayout.release();
-    bindGroupLayout.release();
-
-    pipeline.release();
+    uniformBuffer.buffer.release();
 
     wgpuSurfaceUnconfigure(surface);
     wgpuSurfaceRelease(surface);
@@ -548,11 +552,11 @@ void Application::MainLoop() {
 
     // Update uniforms
     float t = static_cast<float>(glfwGetTime());
-    queue.writeBuffer(uniformBuffer, offsetof(MyUniforms, time), &t, sizeof(float));
+    queue.writeBuffer(uniformBuffer.buffer, offsetof(MyUniforms, time), &t, sizeof(float));
     mat4x4 viewMat = camera.GetViewMatrix();
     mat4x4 modelMat = glm::rotate(mat4(1.0f), t, vec3(0.0f, 1.0f, 0.0f));
-    queue.writeBuffer(uniformBuffer, offsetof(MyUniforms, modelMatrix), &modelMat, sizeof(mat4x4));
-    queue.writeBuffer(uniformBuffer, offsetof(MyUniforms, viewMatrix), &viewMat, sizeof(mat4x4));
+    queue.writeBuffer(uniformBuffer.buffer, offsetof(MyUniforms, modelMatrix), &modelMat, sizeof(mat4x4));
+    queue.writeBuffer(uniformBuffer.buffer, offsetof(MyUniforms, viewMatrix), &viewMat, sizeof(mat4x4));
 
     auto [surfaceTexture, targetView] = GetNextSurfaceViewData();
     if(!targetView) return;
@@ -582,7 +586,7 @@ void Application::MainLoop() {
     // Create render pass depth attachment
     RenderPassDepthStencilAttachment depthStencilAttachment;
     // The view of the depth texture
-    depthStencilAttachment.view = depthTextureView;
+    depthStencilAttachment.view = depthTextureHolder.depthTextureView;
 
     // 1 is far
     depthStencilAttachment.depthClearValue = 1.0f;
@@ -610,10 +614,10 @@ void Application::MainLoop() {
     RenderPassEncoder renderPass = encoder.beginRenderPass(renderPassDesc);
 
     // What to draw here
-    renderPass.setPipeline(pipeline);
+    renderPass.setPipeline(testShader.pipeline);
     renderPass.setVertexBuffer(0, vertexBuffer.buffer, 0, vertexBuffer.size); // Could change geo here
     renderPass.setIndexBuffer(indexBuffer.buffer, IndexFormat::Uint32, 0, indexBuffer.size);
-    renderPass.setBindGroup(0, bindGroup, 0, nullptr);
+    renderPass.setBindGroup(0, testShader.bindGroup, 0, nullptr);
     renderPass.drawIndexed(indexCount, 1, 0, 0, 0);
 
     renderPass.end();
@@ -716,18 +720,14 @@ void Application::InitializeBuffers() {
     testComputeMeshGenerate();
 
     // Uniform Buffer
-    BufferDescriptor uniformBufferDesc;
-    uniformBufferDesc.size = sizeof(MyUniforms); // Aligned with 4 float
-    uniformBufferDesc.usage = BufferUsage::CopyDst | BufferUsage::Uniform;
-    uniformBufferDesc.mappedAtCreation = false;
-    uniformBuffer = device.createBuffer(uniformBufferDesc);
+    uniformBuffer = createBuffer(device, sizeof(MyUniforms), BufferUsage::CopyDst | BufferUsage::Uniform, false);
     MyUniforms uniforms;
     uniforms.time = 1.0f;
     uniforms.color = vec4(1.0,0.0,0.0,1.0);
     uniforms.modelMatrix = mat4(1.0f);
     uniforms.projectionMatrix = camera.GetProjectionMatrix();
     uniforms.viewMatrix = camera.GetViewMatrix();
-    queue.writeBuffer(uniformBuffer, 0, &uniforms, sizeof(MyUniforms));
+    queue.writeBuffer(uniformBuffer.buffer, 0, &uniforms, sizeof(MyUniforms));
 
     // !!! Buffers must be multiple of 4 bytes
     // So make sure your data AND buffer is a good size
@@ -735,24 +735,24 @@ void Application::InitializeBuffers() {
 }
 
 void Application::InitializeBindGroups() {
-    vector<BindGroupEntry> bindings(3);
+    // vector<BindGroupEntry> bindings(3);
 
-    bindings[0].binding = 0; // Index of binding
-    bindings[0].buffer = uniformBuffer; // Must come after creating buffer
-    bindings[0].offset = 0;
-    bindings[0].size = sizeof(MyUniforms);
+    // bindings[0].binding = 0; // Index of binding
+    // bindings[0].buffer = uniformBuffer; // Must come after creating buffer
+    // bindings[0].offset = 0;
+    // bindings[0].size = sizeof(MyUniforms);
 
-    bindings[1].binding = 1;
-    bindings[1].textureView = testTexture.textureView;
+    // bindings[1].binding = 1;
+    // bindings[1].textureView = testTexture.textureView;
 
-    bindings[2].binding = 2;
-    bindings[2].sampler = testTexture.sampler;
+    // bindings[2].binding = 2;
+    // bindings[2].sampler = testTexture.sampler;
 
-    BindGroupDescriptor bindGroupDesc = {};
-    bindGroupDesc.layout = bindGroupLayout;
-    bindGroupDesc.entryCount = static_cast<uint32_t>(bindings.size()); // Same as layout
-    bindGroupDesc.entries = bindings.data();
-    bindGroup = device.createBindGroup(bindGroupDesc);
+    // BindGroupDescriptor bindGroupDesc = {};
+    // bindGroupDesc.layout = bindGroupLayout;
+    // bindGroupDesc.entryCount = static_cast<uint32_t>(bindings.size()); // Same as layout
+    // bindGroupDesc.entries = bindings.data();
+    // bindGroup = device.createBindGroup(bindGroupDesc);
 }
 
 void Application::testComputeMeshGenerate() {

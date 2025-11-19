@@ -15,6 +15,8 @@
 #include "camera.h"
 #include "texture_holder.h"
 #include "compute_shader.h"
+#include "shader.h"
+#include "depth_texture.h"
 
 using namespace wgpu;
 using namespace glm;
@@ -22,7 +24,7 @@ using namespace glm;
 class Application {
     public:
     
-    inline Application() : device(nullptr), queue(nullptr), surface(nullptr), pipeline(nullptr), pipelineLayout(nullptr) {}
+    inline Application() : device(nullptr), queue(nullptr), surface(nullptr) {}
     bool Initialize(); // Was initialization succesful?
     void Terminate();
     void MainLoop(); // Draw frame and handle events
@@ -60,14 +62,16 @@ class Application {
     void InitializeBindGroups();
     // BindGroupLayout bindGroupLayout = nullptr;
     // BindGroup bindGroup = nullptr; // Bind Group mirrors the Layout, contains actual bindings
-    Texture depthTexture = nullptr;
-    TextureView depthTextureView = nullptr;
+    // Texture depthTexture = nullptr;
+    // TextureView depthTextureView = nullptr;
+    DepthTexture depthTextureHolder;
+    Shader testShader;
 
     void InitializeBuffers();
     BufferHolder vertexBuffer;
     BufferHolder indexBuffer;
     BufferHolder countBuffer;
-    Buffer uniformBuffer = nullptr;
+    BufferHolder uniformBuffer;
     uint32_t indexCount;
 
     ComputeShader testComputeShader;
