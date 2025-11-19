@@ -322,23 +322,8 @@ bool Application::Initialize() {
 
     wgpuAdapterRelease(adapter);
 
-    // InitializeRenderPipeline();
-
+    ///
     testTexture.Initialize(device, uvec3(256), true, true);
-    uint32_t dim = 256;
-    vector<uint8_t> pixels(4 * dim * dim * dim);
-    for(uint32_t i = 0; i < dim; ++i) {
-        for(uint32_t j = 0; j<dim; ++j) {
-            for(uint32_t k=0; k<dim; ++k) {
-                uint8_t *p = &pixels[4 * (j + i * dim + k * dim * dim)];
-                p[0] = (uint8_t) i;
-                p[1] = (uint8_t) j;
-                p[2] = (uint8_t) k;
-                p[3] = 255;
-            }
-        }
-    }
-    testTexture.WriteToTexture(queue, pixels);
     testInputTexture.Initialize(device, uvec3(256), true, true);
 
     vector<SP::Parameter> computeShaderParams = {
@@ -366,7 +351,6 @@ bool Application::Initialize() {
 
     depthTextureHolder.Initialize(device);
     testShader.Initialize(device, testShaderParams, surfaceFormat, depthTextureHolder, "/test_shader.wgsl");
-    //InitializeBindGroups();
 
     return true;
 }
@@ -390,161 +374,6 @@ void Application::Terminate() {
     
     wgpuQueueRelease(queue);
     wgpuDeviceRelease(device);
-}
-
-void Application::InitializeRenderPipeline() {
-
-    // RenderPipelineDescriptor pipelineDesc;
-
-    // #ifdef RESOURCE_DIR
-    // ShaderModule shaderModule = ResourceManager::LoadShaderModule(RESOURCE_DIR "/test_shader.wgsl", device);
-    // #else
-    // ShaderModule shaderModule = nullptr;
-    // std::cerr << "Resource Directory Undefined by CMake!" << std::endl;
-    // #endif
-    // if(shaderModule == nullptr) {
-    //     std::cerr << "Couldn't load shader!" << std::endl;
-    //     exit(1);
-    // }
-
-    // // [...] Describe vertex pipeline state
-    //     // [...] Describe vertex buffers
-    //     pipelineDesc.vertex.bufferCount = 0;
-    //     pipelineDesc.vertex.buffers = nullptr;
-    //     // [...] Describe vertex shader
-    //     pipelineDesc.vertex.module = shaderModule;
-    //     pipelineDesc.vertex.entryPoint = "vs_main";
-    //     pipelineDesc.vertex.constantCount = 0;
-    //     pipelineDesc.vertex.constants = nullptr;
-    // // [...] Describe primitive pipeline state
-    // pipelineDesc.primitive.topology = PrimitiveTopology::TriangleList; // Interpret as triangles
-    // pipelineDesc.primitive.stripIndexFormat = IndexFormat::Undefined;
-    // pipelineDesc.primitive.frontFace = FrontFace::CCW; // What counts as front face?
-    // pipelineDesc.primitive.cullMode = CullMode::None; // Well ^ don't matter for now cuz we're not culling
-    // // [...] Describe fragment pipeline state
-    // FragmentState fragmentState;
-    // fragmentState.module = shaderModule;
-    // fragmentState.entryPoint = "fs_main";
-    // fragmentState.constantCount = 0;
-    // fragmentState.constants = nullptr;
-    // // [...] Configure blending stage here!
-    // BlendState blendState;
-    // // [...] Configure Color Blending which takes form 'col = SourceFactor * src (VariableOperation) DstFactor * dst
-    // // Src is what we're drawing and Dst is what already exists so Src is on top of Dst
-    // blendState.color.srcFactor = BlendFactor::SrcAlpha;
-    // blendState.color.dstFactor = BlendFactor::OneMinusSrcAlpha;
-    // blendState.color.operation = BlendOperation::Add;
-    // // [...] Configure Alpha Blending, we'll just make it always 1 for now
-    // blendState.alpha.srcFactor = BlendFactor::Zero;
-    // blendState.alpha.dstFactor = BlendFactor::One;
-    // blendState.alpha.operation = BlendOperation::Add;
-
-    // ColorTargetState colorTarget;
-    // colorTarget.format = surfaceFormat;
-    // colorTarget.blend = &blendState;
-    // colorTarget.writeMask = ColorWriteMask::All; // Could write to a subset of color channels
-
-    // // Only 1 color attachment so only 1 target color
-    // fragmentState.targetCount = 1;
-    // fragmentState.targets = &colorTarget;
-
-    // pipelineDesc.fragment = &fragmentState; // Nullable since fragment state is optional
-    // // [...] Describe stencil/depth pipeline state
-    // DepthStencilState depthStencilState = Default;
-    // depthStencilState.depthCompare = CompareFunction::Less;
-    // depthStencilState.depthWriteEnabled = true;
-    // // [...] Create depth texture & depth tex view
-    // TextureFormat depthTextureFormat = TextureFormat::Depth24Plus;
-    // depthStencilState.format = depthTextureFormat;
-    // depthStencilState.stencilReadMask = 0;
-    // depthStencilState.stencilWriteMask = 0;
-    // TextureDescriptor depthTextureDesc;
-    // depthTextureDesc.dimension = TextureDimension::_2D;
-    // depthTextureDesc.format = depthTextureFormat;
-    // depthTextureDesc.mipLevelCount = 1;
-    // depthTextureDesc.sampleCount = 1;
-    // depthTextureDesc.size = {640, 480, 1};
-    // depthTextureDesc.usage = TextureUsage::RenderAttachment;
-    // depthTextureDesc.viewFormatCount = 1;
-    // depthTextureDesc.viewFormats = (WGPUTextureFormat*) &depthTextureFormat;
-    // depthTexture = device.createTexture(depthTextureDesc);
-    // TextureViewDescriptor depthTextureViewDesc;
-    // depthTextureViewDesc.aspect = TextureAspect::DepthOnly;
-    // depthTextureViewDesc.baseArrayLayer = 0;
-    // depthTextureViewDesc.arrayLayerCount = 1;
-    // depthTextureViewDesc.baseMipLevel = 0;
-    // depthTextureViewDesc.mipLevelCount = 1;
-    // depthTextureViewDesc.dimension = TextureViewDimension::_2D;
-    // depthTextureViewDesc.format = depthTextureFormat;
-    // depthTextureView = depthTexture.createView(depthTextureViewDesc);
-    // pipelineDesc.depthStencil = &depthStencilState; // Configure ZBuffer test
-    // // [...] Describe multi-sampling state
-    // // You can have multiple fragments per pixel and avg the result into a pixel
-    // pipelineDesc.multisample.count = 1; // But we won't do multisampling
-    // pipelineDesc.multisample.mask = ~0u; // All bits on
-    // pipelineDesc.multisample.alphaToCoverageEnabled = false; // Irrelevant for now
-
-    // // [...]
-    // vector<BindGroupLayoutEntry> bindingLayoutEntries(3, Default);
-
-    // // Binding Entry 1
-    // BindGroupLayoutEntry &bindingLayout = bindingLayoutEntries[0];
-    // bindingLayout.binding = 0; // @binding attrib in shader
-    // bindingLayout.visibility = ShaderStage::Vertex | ShaderStage::Fragment;
-    // bindingLayout.buffer.type = BufferBindingType::Uniform; // sampler, texture, and storageTexture are set to Undefined but this one set to Uniform cuz we use buffer for uniform
-    // bindingLayout.buffer.minBindingSize = sizeof(MyUniforms);
-
-    // BindGroupLayoutEntry &textureBindingLayout = bindingLayoutEntries[1];
-    // textureBindingLayout.binding = 1;
-    // textureBindingLayout.visibility = ShaderStage::Fragment;
-    // textureBindingLayout.texture.sampleType = TextureSampleType::Float; // This one we set the texture type instead of buffer
-    // textureBindingLayout.texture.viewDimension = TextureViewDimension::_3D;
-
-    // BindGroupLayoutEntry &samplerBindingLayout = bindingLayoutEntries[2];
-    // samplerBindingLayout.binding = 2 ;
-    // samplerBindingLayout.visibility = ShaderStage::Fragment;
-    // samplerBindingLayout.sampler.type = SamplerBindingType::Filtering;
-
-    // BindGroupLayoutDescriptor bindGroupLayoutDesc = {};
-    // bindGroupLayoutDesc.entryCount = 3;
-    // bindGroupLayoutDesc.entries = bindingLayoutEntries.data();
-    // bindGroupLayout = device.createBindGroupLayout(bindGroupLayoutDesc);
-
-    // PipelineLayoutDescriptor pipelineLayoutDesc = {};
-    // pipelineLayoutDesc.bindGroupLayoutCount = 1;
-    // pipelineLayoutDesc.bindGroupLayouts = (WGPUBindGroupLayout*) &bindGroupLayout;
-    // pipelineLayout = device.createPipelineLayout(pipelineLayoutDesc);
-    // // [...] Describe pipeline layout
-    // pipelineDesc.layout = pipelineLayout;
-
-
-    // // [...] Describe Vertex Layout
-    // VertexBufferLayout vertexBufferLayout;
-
-    // vector<VertexAttribute> vertexAttribs(2);
-
-    // vertexAttribs[0].shaderLocation = 0;
-    // vertexAttribs[0].format = VertexFormat::Float32x3;
-    // vertexAttribs[0].offset = 0;
-
-    // vertexAttribs[1].shaderLocation = 1;
-    // vertexAttribs[1].format = VertexFormat::Float32x3;
-    // vertexAttribs[1].offset = 3 * sizeof(float);
-    
-
-    // vertexBufferLayout.attributeCount = 2;
-    // vertexBufferLayout.attributes = vertexAttribs.data();
-
-    // vertexBufferLayout.arrayStride = 6 * sizeof(float);
-    // vertexBufferLayout.stepMode = VertexStepMode::Vertex; // Each new val is a new vertex
-
-    // pipelineDesc.vertex.bufferCount = 1;
-    // pipelineDesc.vertex.buffers = &vertexBufferLayout;
-    
-    // pipeline = device.createRenderPipeline(pipelineDesc);
-
-    // shaderModule.release();
-
 }
 
 void Application::MainLoop() {
@@ -732,27 +561,6 @@ void Application::InitializeBuffers() {
     // !!! Buffers must be multiple of 4 bytes
     // So make sure your data AND buffer is a good size
     // Could be arbitrary data just avoid trash data
-}
-
-void Application::InitializeBindGroups() {
-    // vector<BindGroupEntry> bindings(3);
-
-    // bindings[0].binding = 0; // Index of binding
-    // bindings[0].buffer = uniformBuffer; // Must come after creating buffer
-    // bindings[0].offset = 0;
-    // bindings[0].size = sizeof(MyUniforms);
-
-    // bindings[1].binding = 1;
-    // bindings[1].textureView = testTexture.textureView;
-
-    // bindings[2].binding = 2;
-    // bindings[2].sampler = testTexture.sampler;
-
-    // BindGroupDescriptor bindGroupDesc = {};
-    // bindGroupDesc.layout = bindGroupLayout;
-    // bindGroupDesc.entryCount = static_cast<uint32_t>(bindings.size()); // Same as layout
-    // bindGroupDesc.entries = bindings.data();
-    // bindGroup = device.createBindGroup(bindGroupDesc);
 }
 
 void Application::testComputeMeshGenerate() {

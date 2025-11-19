@@ -48,7 +48,6 @@ class Application {
     static_assert(sizeof(MyUniforms) % 16 == 0);
     
     std::pair<SurfaceTexture, TextureView> GetNextSurfaceViewData();
-    void InitializeRenderPipeline();
     RequiredLimits GetRequiredLimits(Adapter adapter) const;
     
     GLFWwindow *window;
@@ -57,13 +56,6 @@ class Application {
     Surface surface;
     TextureFormat surfaceFormat = TextureFormat::Undefined;
 
-    // RenderPipeline pipeline;
-    // PipelineLayout pipelineLayout;
-    void InitializeBindGroups();
-    // BindGroupLayout bindGroupLayout = nullptr;
-    // BindGroup bindGroup = nullptr; // Bind Group mirrors the Layout, contains actual bindings
-    // Texture depthTexture = nullptr;
-    // TextureView depthTextureView = nullptr;
     DepthTexture depthTextureHolder;
     Shader testShader;
 
