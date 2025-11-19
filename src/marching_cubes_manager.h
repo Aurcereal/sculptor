@@ -8,19 +8,42 @@
 
 using namespace glm;
 
-class MarchingCubesManager {
-    public:
-    void Initialize();
-    
-    void UpdateExistenceField();
-    void RegenerateGeometry();
+namespace MarchingCubes {
 
-    private:
-    void CreateShaders();
-    void CreateTextures();
-    void CreateBuffers();
-    void CreateUniforms();
+    class Manager {
+        public:
+        Raycaster raycaster;
+        FieldEditor fieldEditor;
+        MeshGenerator meshGenerator;
+        Drawer drawer;
 
-    uint textureResolution;
-    ComputeShader meshGeneratorShader;
-};
+        private:
+
+        uint textureResolution;
+        ComputeShader meshGeneratorShader;
+        
+    };
+
+    class Raycaster {
+        struct Intersection {
+            vec3 pos;
+            vec3 norm;
+        };
+
+        public:
+        Intersection RayFieldIntersect(vec3 origin, vec3 direction);  
+    };
+
+    class FieldEditor {
+    };
+
+    class MeshGenerator {
+    };
+
+    class Drawer {
+        // Next make a shader class to put in here, initializerenderpipeline
+        // will migrate to the class and do a very similar shaderparameter thing
+        // like i did inc ompute shader
+    };
+
+}
