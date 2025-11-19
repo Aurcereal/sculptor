@@ -2,37 +2,38 @@
 
 #include <webgpu/webgpu.hpp>
 
-// #include <GLFW/glfw3.h>
-// #include <glfw3webgpu.h>
+#include <GLFW/glfw3.h>
+#include <glfw3webgpu.h>
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 #include <utility>
 #include <glm/glm.hpp>
-#include <vector>
-#include "texture_holder.h"
-#include "shader_parameter.h"
-#include "webgpu_utils.h"
 
-using namespace wgpu;
+#include "shader_parameter.h"
+
 using namespace std;
 
-class ComputeShader {
+class Shader {
     public:
-
-    inline ComputeShader() {}
-    void Initialize(Device &device, const vector<ShaderParameter::Parameter>&, std::string path);
-    void Dispatch(Device &device, Queue &queue, uvec3 size, bool *finished);
+    
+    void Initialize(Device&, const vector<ShaderParameter::Parameter>&, TextureFormat, std::string path);
     void Destroy();
 
     private:
 
     void InitBindGroupLayout(Device &device, const vector<ShaderParameter::Parameter>&);
     void InitBindGroups(Device &device, const vector<ShaderParameter::Parameter>&);
-    PipelineLayout pipelineLayout = nullptr;
-    ComputePipeline computePipeline = nullptr;
+    VertexBufferLayout InitVertexLayout();
+
+    RenderPipeline pipeline;
+    PipelineLayout pipelineLayout;
+    
+    Texture depthTexture = nullptr;
+    TextureView depthTextureView = nullptr;
 
     BindGroupLayout bindGroupLayout = nullptr;
     BindGroup bindGroup = nullptr;
+    
 };

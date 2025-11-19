@@ -55,11 +55,11 @@ class Application {
     Surface surface;
     TextureFormat surfaceFormat = TextureFormat::Undefined;
 
-    RenderPipeline pipeline;
-    PipelineLayout pipelineLayout;
+    // RenderPipeline pipeline;
+    // PipelineLayout pipelineLayout;
     void InitializeBindGroups();
-    BindGroupLayout bindGroupLayout = nullptr;
-    BindGroup bindGroup = nullptr; // Bind Group mirrors the Layout, contains actual bindings
+    // BindGroupLayout bindGroupLayout = nullptr;
+    // BindGroup bindGroup = nullptr; // Bind Group mirrors the Layout, contains actual bindings
     Texture depthTexture = nullptr;
     TextureView depthTextureView = nullptr;
 

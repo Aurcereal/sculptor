@@ -27,7 +27,8 @@ set(SOURCE_FILES
 	resource_manager.cpp
 	camera.cpp
 	texture_holder.cpp
-	compute_shader.cpp)
+	compute_shader.cpp
+	shader.cpp)
 
 add_executable(App ${SOURCE_FILES})
 
