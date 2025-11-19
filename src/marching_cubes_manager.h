@@ -11,9 +11,15 @@ using namespace glm;
 class MarchingCubesManager {
     public:
     void Initialize();
-    void Run();
+    
+    void UpdateExistenceField();
+    void RegenerateGeometry();
 
     private:
+    void CreateShaders();
+    void CreateTextures();
+    void CreateBuffers();
+    void CreateUniforms();
 
     uint textureResolution;
     ComputeShader meshGeneratorShader;

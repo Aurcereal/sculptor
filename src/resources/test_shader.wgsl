@@ -39,7 +39,7 @@ fn vs_main(vIn: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-	var col = in.normal.xyz;//*vec3f(0.5)+vec3f(0.5);//vec3f(0.4, 0.4, 0.9);
+	var col = in.normal.xyz*vec3f(0.5)+vec3f(0.5);//vec3f(0.4, 0.4, 0.9);
 	var correctedCol = pow(col, vec3f(2.2));
 	return vec4(correctedCol, 1.0);
 }
