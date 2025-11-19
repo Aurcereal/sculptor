@@ -6,6 +6,10 @@
 
 #include <glm/glm.hpp>
 
+#include "texture_holder.h"
+#include "webgpu_utils.h"
+#include "compute_shader.h"
+
 using namespace glm;
 
 namespace MarchingCubes {
@@ -35,15 +39,39 @@ namespace MarchingCubes {
     };
 
     class FieldEditor {
+    public:
+        void Initialize();
+        void GenerateField();
+        // void UpdateField();
+
+    private:
+        ComputeShader fieldTextureInitializer;
+        // ComputeShader fieldTextureDrawer;
+        // ComputeShader copybackShader; // Copy fieldScratchTexture -> fieldTexture
+
+        TextureHolder fieldTexture;
+        // TextureHolder fieldScratchTexture;
     };
 
     class MeshGenerator {
+    public:
+        void Initialize();
+        void GenerateMesh();
+
+    private:
+        ComputeShader meshGenerationShader;
+
+        BufferHolder vertexBuffer;
+        BufferHolder indexBuffer;
+        BufferHolder countBuffer;
     };
 
     class Drawer {
-        // Next make a shader class to put in here, initializerenderpipeline
-        // will migrate to the class and do a very similar shaderparameter thing
-        // like i did inc ompute shader
+    public:
+        void Initialize();
+
+        // shaders and such
+        // headres in the same file, implementations in different files?
     };
 
 }

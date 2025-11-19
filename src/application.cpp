@@ -322,9 +322,20 @@ bool Application::Initialize() {
 
     wgpuAdapterRelease(adapter);
 
-    ///
+    // Creation
+    InitializeBuffers();
+    depthTextureHolder.Initialize(device);
+
     testTexture.Initialize(device, uvec3(256), true, true);
     testInputTexture.Initialize(device, uvec3(256), true, true);
+
+    // Running
+    vector<SP::Parameter> testShaderParams = {
+      SP::Parameter(SP::UUniform{&uniformBuffer}),
+      SP::Parameter(SP::UTexture{&testTexture, true, false}),
+      SP::Parameter(SP::USampler{&testTexture})
+    };
+    testShader.Initialize(device, testShaderParams, surfaceFormat, depthTextureHolder, "/test_shader.wgsl");
 
     vector<SP::Parameter> computeShaderParams = {
       SP::Parameter(SP::UTexture{&testInputTexture, true, false}),
@@ -335,22 +346,11 @@ bool Application::Initialize() {
     testComputeShader.Initialize(device, computeShaderParams, "/test_compute.wgsl");
     bool finished = false;
     testComputeShader.Dispatch(device, queue, uvec3(256), &finished);
-    std::cout << "Finished?: " << finished << std::endl;
     while(!finished) {
         wgpuPollEvents(device, true);
     }
-    std::cout << "Finished??: " << finished << std::endl;
 
-    InitializeBuffers();
-
-    vector<SP::Parameter> testShaderParams = {
-      SP::Parameter(SP::UUniform{&uniformBuffer}),
-      SP::Parameter(SP::UTexture{&testTexture, true, false}),
-      SP::Parameter(SP::USampler{&testTexture})
-    };
-
-    depthTextureHolder.Initialize(device);
-    testShader.Initialize(device, testShaderParams, surfaceFormat, depthTextureHolder, "/test_shader.wgsl");
+    testComputeMeshGenerate();
 
     return true;
 }
@@ -545,8 +545,6 @@ void Application::InitializeBuffers() {
         device, 2 * sizeof(uint32_t), 
         BufferUsage::CopyDst | BufferUsage::Storage, false);
     queue.writeBuffer(countBuffer.buffer, 0, counts.data(), countBuffer.size);
-
-    testComputeMeshGenerate();
 
     // Uniform Buffer
     uniformBuffer = createBuffer(device, sizeof(MyUniforms), BufferUsage::CopyDst | BufferUsage::Uniform, false);
