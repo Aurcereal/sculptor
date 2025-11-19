@@ -265,13 +265,13 @@ var<private> cubeConfigToEdgeCuts: array<i32, 4096> = array(
 );
 
 const VERTEX_SIZE : u32 = 6u; // 6 Floats per Vertex
-fn AddVertex(bufferIndex: u32, pos: vec3f) {
+fn AddVertex(bufferIndex: u32, pos: vec3f, norm: vec3f) {
     outputVertices[bufferIndex + 0] = pos.x;
     outputVertices[bufferIndex + 1] = pos.y;
     outputVertices[bufferIndex + 2] = pos.z;
-    outputVertices[bufferIndex + 3] = 0.;
-    outputVertices[bufferIndex + 4] = 0.;
-    outputVertices[bufferIndex + 5] = 0.;
+    outputVertices[bufferIndex + 3] = norm.x;
+    outputVertices[bufferIndex + 4] = norm.y;
+    outputVertices[bufferIndex + 5] = norm.z;
 }
 
 fn AddTriangle(bufferIndex: u32, v1: u32, v2: u32, v3: u32) {
@@ -280,11 +280,11 @@ fn AddTriangle(bufferIndex: u32, v1: u32, v2: u32, v3: u32) {
     outputIndices[bufferIndex + 2] = v3;
 }
 
-fn AddVerticesAndTriangle(v1: vec3f, v2: vec3f, v3: vec3f) {
+fn AddVerticesAndTriangle(v1: vec3f, v2: vec3f, v3: vec3f, norm: vec3f) {
     let bufferVertIndex = atomicAdd(&countBuffers[0], 3*VERTEX_SIZE);
-    AddVertex(bufferVertIndex + 0u*VERTEX_SIZE, v1);
-    AddVertex(bufferVertIndex + 1u*VERTEX_SIZE, v2);
-    AddVertex(bufferVertIndex + 2u*VERTEX_SIZE, v3);
+    AddVertex(bufferVertIndex + 0u*VERTEX_SIZE, v1, norm);
+    AddVertex(bufferVertIndex + 1u*VERTEX_SIZE, v2, norm);
+    AddVertex(bufferVertIndex + 2u*VERTEX_SIZE, v3, norm);
 
     let bufferTriIndex = atomicAdd(&countBuffers[1], 3u);
     let firstVert = bufferVertIndex/VERTEX_SIZE;
@@ -303,6 +303,7 @@ var<private> cubePointsArray: array<vec3f, 8> = array(
     vec3f(-0.5, 0.5, 0.5)
 );
 
+// make uniforms later, uniform struct
 const resolution: u32 = 16;
 const threshold: f32 = 0.5;
 
@@ -326,6 +327,10 @@ fn edgeToPosA(e: i32) -> vec3f {
 fn edgeToPosB(e: i32) -> vec3f {
     let vertIndex = edgeToVertexB[e];
     return cubePointsArray[vertIndex];
+}
+
+fn uvToWorldSpace(uv: vec3f) -> vec3f {
+    return 2.*(uv-vec3f(0.5)); // make a uniform transform mat
 }
 
 @compute 
@@ -361,9 +366,15 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let uvEdge2Point = uv + edge2Point*cubeSize;
         let uvEdge3Point = uv + edge3Point*cubeSize;
 
-        AddVerticesAndTriangle(uvEdge1Point, uvEdge2Point, uvEdge3Point);
+        let worldEdge1Point = uvToWorldSpace(uvEdge1Point);
+        let worldEdge2Point = uvToWorldSpace(uvEdge2Point);
+        let worldEdge3Point = uvToWorldSpace(uvEdge3Point);
 
-        // Need to get out of local cube
+        let p12 = worldEdge2Point-worldEdge1Point;
+        let p13 = worldEdge3Point-worldEdge1Point;
+        let norm = normalize(cross(p13, p12));
+
+        AddVerticesAndTriangle(worldEdge1Point, worldEdge2Point, worldEdge3Point, norm);
     }
 
     // let sample = 0.1*textureSampleLevel(fieldTexture, fieldSampler, uv, 0.0).r;
