@@ -23,7 +23,7 @@ ShaderModule ResourceManager::LoadShaderModule(const std::filesystem::path &path
     shaderCodeDesc.chain.next = nullptr;
     shaderCodeDesc.chain.sType = SType::ShaderModuleWGSLDescriptor;
     shaderCodeDesc.code = shaderSource.c_str(); // !
-    std::cout << shaderCodeDesc.code << std::endl;
+    // std::cout << shaderCodeDesc.code << std::endl;
 
     ShaderModuleDescriptor shaderDesc = {};
     #ifdef WEBGPU_BACKEND_WGPU

@@ -265,7 +265,7 @@ bool Application::Initialize() {
     adapterOpts.compatibleSurface = surface;
     WGPUAdapter adapter = requestAdapterSync(instance, &adapterOpts);
     wgpuInstanceRelease(instance); // Don't need instance now that we have adapter
-    inspectAdapter(adapter);
+    // inspectAdapter(adapter);
 
     // Get device
     std::cout << "Requesting device..." << std::endl;
@@ -294,7 +294,7 @@ bool Application::Initialize() {
         std::cout << std::endl;
         };
     wgpuDeviceSetUncapturedErrorCallback(device, onDeviceError, nullptr /* pUserData */);
-    inspectDevice(device);
+    // inspectDevice(device);
 
     // Queue and Command Buffer
     queue = wgpuDeviceGetQueue(device);
@@ -354,7 +354,13 @@ bool Application::Initialize() {
     // };
 
     testComputeShader.Initialize(device, computeShaderParams, "/test_compute.wgsl");
-    testComputeShader.Dispatch(device, queue, uvec3(256));
+    bool finished = false;
+    testComputeShader.Dispatch(device, queue, uvec3(256), &finished);
+    std::cout << "Finished?: " << finished << std::endl;
+    while(!finished) {
+        wgpuPollEvents(device, true);
+    }
+    std::cout << "Finished??: " << finished << std::endl;
 
     InitializeBuffers();
     InitializeBindGroups();
@@ -691,7 +697,7 @@ RequiredLimits Application::GetRequiredLimits(Adapter adapter) const {
 }
 
 void Application::InitializeBuffers() {
-    const uint tempTriCount = 128;
+    const uint tempTriCount = 64000;
 
     // indices must be uint16_t or uint32_t
     indexCount = tempTriCount*3;//static_cast<uint32_t>(indices.size());
@@ -755,8 +761,6 @@ void Application::InitializeBindGroups() {
     bindGroup = device.createBindGroup(bindGroupDesc);
 }
 
-
-
 void Application::testComputeMeshGenerate() {
     // Temp placement oc, needs textures to be generated
     ComputeShader meshGenerateShader;
@@ -765,10 +769,10 @@ void Application::testComputeMeshGenerate() {
         SP::Parameter(SP::UBuffer{&vertexBuffer, true}),
         SP::Parameter(SP::UBuffer{&indexBuffer, true}),
         SP::Parameter(SP::UBuffer{&countBuffer, true}),
-        SP::Parameter(SP::UTexture{&testInputTexture, true, false}),
-        SP::Parameter(SP::USampler{&testInputTexture})
+        SP::Parameter(SP::UTexture{&testTexture, true, false}),
+        SP::Parameter(SP::USampler{&testTexture})
     };
     meshGenerateShader.Initialize(device, params, "/mesh_generate.wgsl");
-    meshGenerateShader.Dispatch(device, queue, uvec3(2,1,1));
+    meshGenerateShader.Dispatch(device, queue, uvec3(16), nullptr);
     meshGenerateShader.Destroy();
 }
