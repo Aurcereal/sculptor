@@ -331,46 +331,45 @@ fn edgeToPosB(e: i32) -> vec3f {
 @compute 
 @workgroup_size(4, 4, 4) // TODO: make 3D
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let uv = (vec3f(id)+vec3f(0.5))/f32(resolution);
+    let cubeSize = 1.0/f32(resolution);
+    let uv = (vec3f(id)+vec3f(0.5))*cubeSize;
 
     // Get Cube Config
-    // var config: u32 = 0;
-    // for(var i: i32 = 7; i>=0; i=i-1) {
-    //     let currUV = uv + cubePointsArray[i];
-    //     let sample = textureSampleLevel(fieldTexture, fieldSampler, currUV, 0.0).r;
-    //     let sampleIsInGeometry = u32(step(threshold, sample));
+    var config: u32 = 0;
+    for(var i: i32 = 7; i>=0; i=i-1) {
+        let currUV = uv + cubeSize*cubePointsArray[i];
+        let sample = textureSampleLevel(fieldTexture, fieldSampler, currUV, 0.0).r;
+        let sampleIsInGeometry = u32(step(threshold, sample));
 
-    //     config = config << 1;
-    //     config |= sampleIsInGeometry;
-    // }
-    // config = 1u;
+        config = config << 1;
+        config |= sampleIsInGeometry;
+    }
+    //config = 1u;
 
-    // // Triangulate
-    // let startIndex: u32 = config*16;
-    // for(var i: u32 = 0; i<15; i=i+3) {
-    //     let edge1 = cubeConfigToEdgeCuts[startIndex+i + 0];
-    //     let edge2 = cubeConfigToEdgeCuts[startIndex+i + 1];
-    //     let edge3 = cubeConfigToEdgeCuts[startIndex+i + 2];
+    // Triangulate
+    let startIndex: u32 = config*16;
+    for(var i: u32 = 0; i<15; i=i+3) {
+        let edge1 = cubeConfigToEdgeCuts[startIndex+i + 0];
+        let edge2 = cubeConfigToEdgeCuts[startIndex+i + 1];
+        let edge3 = cubeConfigToEdgeCuts[startIndex+i + 2];
 
-    //     let edge1Point: vec3f = 0.5 * (edgeToPosA(edge1) + edgeToPosB(edge1)); // For now, just midpoint
-    //     let edge2Point: vec3f = 0.5 * (edgeToPosA(edge2) + edgeToPosB(edge2));
-    //     let edge3Point: vec3f = 0.5 * (edgeToPosA(edge3) + edgeToPosB(edge3));
+        let edge1Point: vec3f = 0.5 * (edgeToPosA(edge1) + edgeToPosB(edge1)); // For now, just midpoint
+        let edge2Point: vec3f = 0.5 * (edgeToPosA(edge2) + edgeToPosB(edge2));
+        let edge3Point: vec3f = 0.5 * (edgeToPosA(edge3) + edgeToPosB(edge3));
 
-    //     // var placementPos = vec3f(id);
-    //     // var p1 = placementPos + vec3f(-0.2,-0.2,0.0);
-    //     // var p2 = placementPos + vec3f(0.2,-0.2,0.0);
-    //     // var p3 = placementPos + vec3f(-0.2,0.2,0.0);
-    //     // AddVerticesAndTriangle(edge1Point, p2, p3);
+        let uvEdge1Point = uv + edge1Point*cubeSize;
+        let uvEdge2Point = uv + edge2Point*cubeSize;
+        let uvEdge3Point = uv + edge3Point*cubeSize;
 
-    //     AddVerticesAndTriangle(edge1Point, edge2Point, edge3Point);
+        AddVerticesAndTriangle(uvEdge1Point, uvEdge2Point, uvEdge3Point);
 
-    //     // Need to get out of local cube
-    // }
+        // Need to get out of local cube
+    }
 
-    let sample = textureSampleLevel(fieldTexture, fieldSampler, vec3f(0.01), 0.0).r;
-    var placementPos = vec3f(id);//+vec3f(f32(config), 0.0, 0.0);
-    var p1 = placementPos + sample*vec3f(-0.2,-0.2,0.0);
-    var p2 = placementPos + sample*vec3f(0.2,-0.2,0.0);
-    var p3 = placementPos + sample*vec3f(-0.2,0.2,0.0);
-    AddVerticesAndTriangle(p1, p2, p3);
+    // let sample = 0.1*textureSampleLevel(fieldTexture, fieldSampler, uv, 0.0).r;
+    // var placementPos = 0.1*vec3f(id);//+vec3f(f32(config), 0.0, 0.0);
+    // var p1 = placementPos + sample*vec3f(-0.2,-0.2,0.0);
+    // var p2 = placementPos + sample*vec3f(0.2,-0.2,0.0);
+    // var p3 = placementPos + sample*vec3f(-0.2,0.2,0.0);
+    // AddVerticesAndTriangle(p1, p2, p3);
 }
