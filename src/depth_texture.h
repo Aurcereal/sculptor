@@ -21,5 +21,6 @@ class DepthTexture {
     DepthStencilState depthStencilState;
     Texture depthTexture = nullptr;
     TextureView depthTextureView = nullptr;
-    
+  
+    void Destroy();
 };

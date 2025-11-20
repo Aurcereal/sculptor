@@ -29,7 +29,11 @@ set(SOURCE_FILES
 	texture_holder.cpp
 	compute_shader.cpp
 	shader.cpp
-	depth_texture.cpp)
+	depth_texture.cpp
+	marching_cubes_manager.cpp
+	field_editor.cpp
+	mesh_generator.cpp
+	drawer.cpp)
 
 add_executable(App ${SOURCE_FILES})
 

@@ -19,8 +19,6 @@ namespace ShaderParameter {
         const TextureHolder *textureHolder;
         bool is3D;
         bool shaderWriteEnabled; // Texture can be write enabled but used for reading for this particular parameter, set to false in that case
-
-        //inline UTexture()
     };
 
     struct USampler {

@@ -356,10 +356,14 @@ bool Application::Initialize() {
 
     testComputeMeshGenerate();
 
+    marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, surfaceFormat);
+
     return true;
 }
 
 void Application::Terminate() {
+    marchingCubesManager->Destroy();
+
     testTexture.Destroy();
     testInputTexture.Destroy();
     testComputeShader.Destroy();
@@ -382,6 +386,8 @@ void Application::Terminate() {
 
 void Application::MainLoop() {
     glfwPollEvents(); // Process input events
+
+    marchingCubesManager->MainLoop();
 
     // Update uniforms
     float t = static_cast<float>(glfwGetTime());
@@ -419,7 +425,7 @@ void Application::MainLoop() {
     // Create render pass depth attachment
     RenderPassDepthStencilAttachment depthStencilAttachment;
     // The view of the depth texture
-    depthStencilAttachment.view = depthTextureHolder.depthTextureView;
+    depthStencilAttachment.view = marchingCubesManager->drawer.depthTextureHolder.depthTextureView;
 
     // 1 is far
     depthStencilAttachment.depthClearValue = 1.0f;
@@ -447,11 +453,18 @@ void Application::MainLoop() {
     RenderPassEncoder renderPass = encoder.beginRenderPass(renderPassDesc);
 
     // What to draw here
-    renderPass.setPipeline(testShader.pipeline);
-    renderPass.setVertexBuffer(0, vertexBuffer.buffer, 0, vertexBuffer.size); // Could change geo here
-    renderPass.setIndexBuffer(indexBuffer.buffer, IndexFormat::Uint32, 0, indexBuffer.size);
-    renderPass.setBindGroup(0, testShader.bindGroup, 0, nullptr);
+    // renderPass.setPipeline(testShader.pipeline);
+    // renderPass.setVertexBuffer(0, vertexBuffer.buffer, 0, vertexBuffer.size); // Could have CPU side vertex size? IDK if that would even help
+    // renderPass.setIndexBuffer(indexBuffer.buffer, IndexFormat::Uint32, 0, indexBuffer.size);
+    // renderPass.setBindGroup(0, testShader.bindGroup, 0, nullptr);
+    // renderPass.drawIndexed(indexCount, 1, 0, 0, 0);
+
+    renderPass.setPipeline(marchingCubesManager->drawer.drawShader.pipeline);
+    renderPass.setVertexBuffer(0, marchingCubesManager->meshGenerator.vertexBuffer.buffer, 0, marchingCubesManager->meshGenerator.vertexBuffer.size); // Could have CPU side vertex size? IDK if that would even help
+    renderPass.setIndexBuffer(marchingCubesManager->meshGenerator.indexBuffer.buffer, IndexFormat::Uint32, 0, marchingCubesManager->meshGenerator.indexBuffer.size);
+    renderPass.setBindGroup(0, marchingCubesManager->drawer.drawShader.bindGroup, 0, nullptr);
     renderPass.drawIndexed(indexCount, 1, 0, 0, 0);
+    renderPass.drawIndexedIndirect(marchingCubesManager->drawer.indirectDrawArgs.buffer, 0);
 
     renderPass.end();
     renderPass.release();

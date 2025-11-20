@@ -30,3 +30,8 @@ void DepthTexture::Initialize(Device &device) {
     depthTextureViewDesc.format = depthTextureFormat;
     depthTextureView = depthTexture.createView(depthTextureViewDesc);
 }
+
+void DepthTexture::Destroy() {
+    depthTexture.destroy();
+    depthTexture.release();
+}

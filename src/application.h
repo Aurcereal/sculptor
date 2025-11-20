@@ -16,6 +16,8 @@
 #include "compute_shader.h"
 #include "shader.h"
 #include "depth_texture.h"
+#include "marching_cubes_manager.h"
+#include "uPtr_macros.h"
 
 using namespace wgpu;
 using namespace glm;
@@ -68,4 +70,7 @@ class Application {
     ComputeShader testComputeShader;
     TextureHolder testInputTexture;
     TextureHolder testTexture;
+
+    //
+    uPtr<MarchingCubes::Manager> marchingCubesManager;
 };

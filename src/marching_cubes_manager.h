@@ -10,31 +10,18 @@
 #include "texture_holder.h"
 #include "webgpu_utils.h"
 #include "compute_shader.h"
+#include "shader.h"
+#include "camera.h"
 
 using namespace glm;
 
 namespace MarchingCubes {
 
-    class Manager {
-        public:
-        Manager(const Device*);
-        Device device;
-
-        Raycaster raycaster;
-        FieldEditor fieldEditor;
-        MeshGenerator meshGenerator;
-        Drawer drawer;
-        Parameters parameters;
-
-        private:
-
-        uint textureResolution;
-        ComputeShader meshGeneratorShader;
-        
-    };
+    class Manager;
 
     struct Parameters {
-        uvec3 resolution;
+        uint textureResolution;
+        uint marchingCubesResolution;
     };
 
     class Raycaster {
@@ -50,10 +37,15 @@ namespace MarchingCubes {
     class FieldEditor {
     public:
         inline FieldEditor(Manager *m) : manager(m) {}
-        
+
         void Initialize();
         void GenerateField();
         // void UpdateField();
+
+        TextureHolder fieldTexture;
+        // TextureHolder fieldScratchTexture;
+
+        void Destroy();
 
     private:
         Manager *manager;
@@ -61,30 +53,74 @@ namespace MarchingCubes {
         ComputeShader fieldTextureInitializer;
         // ComputeShader fieldTextureDrawer;
         // ComputeShader copybackShader; // Copy fieldScratchTexture -> fieldTexture
-
-        TextureHolder fieldTexture;
-        // TextureHolder fieldScratchTexture;
+        
     };
 
     class MeshGenerator {
     public:
+        inline MeshGenerator(Manager *m) : manager(m) {}
+
         void Initialize();
         void GenerateMesh();
 
-    private:
-        ComputeShader meshGenerationShader;
+        void Destroy();
 
         BufferHolder vertexBuffer;
         BufferHolder indexBuffer;
+
+    private:
+        Manager *manager;
+
+        ComputeShader meshGenerationShader;
+
+        const uint32_t maxVertexCount = 262144;
+        const uint32_t maxTriangleCount = 262144;
+
+        void ResetCountBuffer();
         BufferHolder countBuffer;
     };
 
     class Drawer {
     public:
-        void Initialize();
+        inline Drawer(Manager *m) : manager(m) {}
 
-        // shaders and such
-        // headres in the same file, implementations in different files?
+        void Initialize(TextureFormat);
+        void UpdateUniforms();
+        
+        void Destroy();
+
+        DepthTexture depthTextureHolder;
+        Shader drawShader;
+        BufferHolder indirectDrawArgs;
+
+    private:
+        Manager *manager;
+        
+        BufferHolder uniformBuffer;
+        
+    };
+
+    class Manager {
+        public:
+        Manager(const Device*, const Queue*, TextureFormat screenFormat);
+        Device device;
+        Queue queue;
+
+        Raycaster raycaster;
+        FieldEditor fieldEditor;
+        MeshGenerator meshGenerator;
+        Drawer drawer;
+        Parameters parameters;
+
+        Camera camera;
+
+        void MainLoop();
+        void Destroy();
+
+        private:
+
+        ComputeShader meshGeneratorShader;
+        
     };
 
 }
