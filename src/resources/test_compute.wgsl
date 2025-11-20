@@ -1,7 +1,7 @@
 @group(0) @binding(0) var inputTexture: texture_3d<f32>;
 @group(0) @binding(1) var inputTextureSampler: sampler;
 // unorm just means we manipulate using unsigned normalized in shader cuz it's a COLOR, when we transition to marching cubes we'll use float with no color meaning
-@group(0) @binding(2) var outputTexture: texture_storage_3d<rgba8unorm,write>;
+@group(0) @binding(2) var outputTexture: texture_storage_3d<r32float,write>;
 
 @compute 
 @workgroup_size(4, 4, 4)

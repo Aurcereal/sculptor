@@ -118,7 +118,7 @@ VertexBufferLayout Shader::InitVertexLayout(vector<VertexAttribute> &vertexAttri
                 ShaderParameter::UTexture texParam = shaderParams[i].texture;
                 if(texParam.shaderWriteEnabled) {
                     bindings[i].storageTexture.access = StorageTextureAccess::WriteOnly;
-                    bindings[i].storageTexture.format = TextureFormat::RGBA8Unorm; // TODO: make parameter
+                    bindings[i].storageTexture.format = texParam.textureHolder->format; // TODO: make parameter
                     bindings[i].storageTexture.viewDimension = texParam.is3D ? TextureViewDimension::_3D : TextureViewDimension::_2D;
                 } else {
                     bindings[i].texture.sampleType = TextureSampleType::Float;

@@ -1,6 +1,7 @@
 #pragma once
 
 // We shouldn't have to communicate with any raw webgpu here ideally...
+// But we will a bit for writing buffer stuff for now
 #include "texture_holder.h"
 #include "compute_shader.h"
 
@@ -16,16 +17,24 @@ namespace MarchingCubes {
 
     class Manager {
         public:
+        Manager(const Device*);
+        Device device;
+
         Raycaster raycaster;
         FieldEditor fieldEditor;
         MeshGenerator meshGenerator;
         Drawer drawer;
+        Parameters parameters;
 
         private:
 
         uint textureResolution;
         ComputeShader meshGeneratorShader;
         
+    };
+
+    struct Parameters {
+        uvec3 resolution;
     };
 
     class Raycaster {
@@ -40,11 +49,15 @@ namespace MarchingCubes {
 
     class FieldEditor {
     public:
+        inline FieldEditor(Manager *m) : manager(m) {}
+        
         void Initialize();
         void GenerateField();
         // void UpdateField();
 
     private:
+        Manager *manager;
+
         ComputeShader fieldTextureInitializer;
         // ComputeShader fieldTextureDrawer;
         // ComputeShader copybackShader; // Copy fieldScratchTexture -> fieldTexture

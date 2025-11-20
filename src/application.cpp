@@ -268,11 +268,15 @@ bool Application::Initialize() {
     // inspectAdapter(adapter);
 
     // Get device
+    vector<WGPUFeatureName> requiredFeatures = {
+        FeatureName::Float32Filterable
+    };
     std::cout << "Requesting device..." << std::endl;
     WGPUDeviceDescriptor deviceDesc = {};
     deviceDesc.nextInChain = nullptr;
     deviceDesc.label = "My Device"; // anything works here, that's your call
-    deviceDesc.requiredFeatureCount = 0; // we do not require any specific feature
+    deviceDesc.requiredFeatureCount = requiredFeatures.size();
+    deviceDesc.requiredFeatures = requiredFeatures.data();
     deviceDesc.defaultQueue.nextInChain = nullptr;
     deviceDesc.defaultQueue.label = "The default queue";
     // A function that is invoked whenever the device stops being available.
@@ -326,8 +330,8 @@ bool Application::Initialize() {
     InitializeBuffers();
     depthTextureHolder.Initialize(device);
 
-    testTexture.Initialize(device, uvec3(256), true, true);
-    testInputTexture.Initialize(device, uvec3(256), true, true);
+    testTexture.Initialize(device, uvec3(256), TextureFormat::R32Float, true, true);
+    testInputTexture.Initialize(device, uvec3(256), TextureFormat::R32Float, true, true);
 
     // Running
     vector<SP::Parameter> testShaderParams = {

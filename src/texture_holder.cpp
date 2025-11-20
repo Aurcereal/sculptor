@@ -2,14 +2,14 @@
 
 TextureHolder::TextureHolder() {}
 
-void TextureHolder::Initialize(Device &device, glm::uvec3 size, bool is3D, bool shaderWrite) {
-    // size 256, 256, 1, dimension was 2d, format was rgba8unorm, try that and then go to like r32float
+void TextureHolder::Initialize(Device &device, glm::uvec3 size, TextureFormat f, bool is3D, bool shaderWrite) {
     textureDesc.dimension = is3D ? TextureDimension::_3D : TextureDimension::_2D;
     textureDesc.size = {size.x, size.y, size.y};
     this->textureSize = size;
     textureDesc.mipLevelCount = 1;
     textureDesc.sampleCount = 1;
-    textureDesc.format = TextureFormat::RGBA8Unorm; // 8 bits each col
+    textureDesc.format = f;
+    this->format = f;
     textureDesc.usage =
         TextureUsage::TextureBinding |  // Can sample in shader
         TextureUsage::CopyDst |          // Can go CPU -> GPU
@@ -44,22 +44,22 @@ void TextureHolder::Initialize(Device &device, glm::uvec3 size, bool is3D, bool 
     sampler = device.createSampler(samplerDesc);
 }
 
-void TextureHolder::WriteToTexture(Queue &queue, const std::vector<uint8_t> &pixels) {
-    // What part of texture we upload to
-    ImageCopyTexture destination;
-    destination.texture = texture;
-    destination.mipLevel = 0; // Write to the 1st mip level
-    destination.origin = {0,0,0}; // Offset we write to
-    destination.aspect = TextureAspect::All; // irrelevant for color textures
+// void TextureHolder::WriteToTexture(Queue &queue, const std::vector<uint8_t> &pixels) {
+//     // What part of texture we upload to
+//     ImageCopyTexture destination;
+//     destination.texture = texture;
+//     destination.mipLevel = 0; // Write to the 1st mip level
+//     destination.origin = {0,0,0}; // Offset we write to
+//     destination.aspect = TextureAspect::All; // irrelevant for color textures
 
-    // How is the C++ pixel memory laid out?
-    TextureDataLayout source;
-    source.offset = 0; // Offset of what we read from
-    source.bytesPerRow = 4 * textureDesc.size.width; // Stride (may be rounded up)
-    source.rowsPerImage = textureDesc.size.height; // (Per Depth Slice) Important for uploading multiple images at once
+//     // How is the C++ pixel memory laid out?
+//     TextureDataLayout source;
+//     source.offset = 0; // Offset of what we read from
+//     source.bytesPerRow = 4 * textureDesc.size.width; // Stride (may be rounded up)
+//     source.rowsPerImage = textureDesc.size.height; // (Per Depth Slice) Important for uploading multiple images at once
 
-    queue.writeTexture(destination, pixels.data(), pixels.size(), source, textureDesc.size);
-}
+//     queue.writeTexture(destination, pixels.data(), pixels.size(), source, textureDesc.size);
+// }
 
 void TextureHolder::Destroy() {
     sampler.release();
