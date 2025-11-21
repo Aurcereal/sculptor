@@ -35,7 +35,7 @@ void MarchingCubes::Drawer::Initialize(TextureFormat surfaceFormat) {
 
     // Initialize Indirect Args
     std::array<uint32_t, 5> indirectArgs = {
-        262144, // Index Count TODO: make initially 0 and we take count buffer to index buffer
+        0,//262144, // Index Count TODO: make initially 0 and we take count buffer to index buffer
         1,     // Instance Count
         0,     // First Index
         0,     // Base Vertex
@@ -44,6 +44,13 @@ void MarchingCubes::Drawer::Initialize(TextureFormat surfaceFormat) {
     indirectDrawArgs = createBuffer(manager->device, sizeof(uint32_t) * indirectArgs.size(),
         BufferUsage::CopyDst | BufferUsage::Storage | BufferUsage::Indirect, false);
     manager->queue.writeBuffer(indirectDrawArgs.buffer, 0, indirectArgs.data(), indirectDrawArgs.size);
+
+    // Initialize Indirect Args Filler
+    vector<SP::Parameter> argsFillerShaderParams = {
+        SP::Parameter(SP::UBuffer{&manager->meshGenerator.countBuffer, false}),
+        SP::Parameter(SP::UBuffer{&indirectDrawArgs, true})
+    };
+    fillIndexCountShader.Initialize(manager->device, argsFillerShaderParams, "./drawing/fill_index_count.wgsl");
 
     std::cout << "Initialized Drawer" << std::endl;
 }
@@ -55,6 +62,10 @@ void MarchingCubes::Drawer::UpdateUniforms() {
     mat4x4 modelMat = glm::rotate(mat4(1.0f), t, vec3(0.0f, 1.0f, 0.0f));
     manager->queue.writeBuffer(uniformBuffer.buffer, offsetof(DrawUniforms, modelMatrix), &modelMat, sizeof(mat4x4));
     manager->queue.writeBuffer(uniformBuffer.buffer, offsetof(DrawUniforms, viewMatrix), &viewMat, sizeof(mat4x4));
+}
+
+void MarchingCubes::Drawer::UpdateIndexCount() {
+    fillIndexCountShader.DispatchSync(manager->device, manager->queue, uvec3(1));
 }
 
 void MarchingCubes::Drawer::Destroy() {

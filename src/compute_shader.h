@@ -24,6 +24,7 @@ class ComputeShader {
     inline ComputeShader() {}
     void Initialize(Device &device, const vector<ShaderParameter::Parameter>&, std::string path);
     void Dispatch(Device &device, Queue &queue, uvec3 size, bool *finished);
+    void DispatchSync(Device &device, Queue &queue, uvec3 size);
     void Destroy();
 
     private:

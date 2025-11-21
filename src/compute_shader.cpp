@@ -142,6 +142,14 @@ void ComputeShader::Dispatch(Device &device, Queue &queue, uvec3 jobSize, bool *
     #endif
 }
 
+void ComputeShader::DispatchSync(Device &device, Queue &queue, uvec3 jobSize) {
+    bool finished = false;
+    Dispatch(device, queue, jobSize, &finished);
+    while(!finished) {
+        wgpuPollEvents(device, true);
+    }
+}
+
 void ComputeShader::Destroy() {
     bindGroupLayout.release();
     pipelineLayout.release();

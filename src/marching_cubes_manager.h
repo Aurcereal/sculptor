@@ -67,6 +67,7 @@ namespace MarchingCubes {
 
         BufferHolder vertexBuffer;
         BufferHolder indexBuffer;
+        BufferHolder countBuffer;
 
     private:
         Manager *manager;
@@ -77,7 +78,6 @@ namespace MarchingCubes {
         const uint32_t maxTriangleCount = 262144;
 
         void ResetCountBuffer();
-        BufferHolder countBuffer;
     };
 
     class Drawer {
@@ -86,6 +86,7 @@ namespace MarchingCubes {
 
         void Initialize(TextureFormat);
         void UpdateUniforms();
+        void UpdateIndexCount();
         
         void Destroy();
 
@@ -97,6 +98,8 @@ namespace MarchingCubes {
         Manager *manager;
         
         BufferHolder uniformBuffer;
+
+        ComputeShader fillIndexCountShader;
         
     };
 
