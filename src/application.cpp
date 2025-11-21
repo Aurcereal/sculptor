@@ -81,41 +81,7 @@ void inspectAdapter(WGPUAdapter adapter) {
     std::cout << std::dec; // Return to decimal mode
 }
 
-void commandBufferTest(WGPUQueue &queue, WGPUDevice &device) {
-    WGPUCommandEncoderDescriptor encoderDesc = {};
-    encoderDesc.nextInChain = nullptr;
-    encoderDesc.label = "Command encoder/creator";
-    WGPUCommandEncoder encoder = wgpuDeviceCreateCommandEncoder(device, &encoderDesc);
-
-    // Create a command that does a nothing task
-    wgpuCommandEncoderInsertDebugMarker(encoder, "task 1");
-    wgpuCommandEncoderInsertDebugMarker(encoder, "task 2");
-
-    // Generate Command Buffer
-    WGPUCommandBufferDescriptor cmdBufferDescriptor = {};
-    cmdBufferDescriptor.nextInChain = nullptr;
-    cmdBufferDescriptor.label = "Command buffer";
-    WGPUCommandBuffer cmd = wgpuCommandEncoderFinish(encoder, &cmdBufferDescriptor);
-    wgpuCommandEncoderRelease(encoder);
-
-    // With the command buffer, we can submit command queue
-    std::cout << "Submitting command..." << std::endl;
-    wgpuQueueSubmit(queue, 1, &cmd);
-    wgpuCommandBufferRelease(cmd);
-    std::cout << "Command submitted" << std::endl;
-
-    for (int i = 0 ; i < 5 ; ++i) {
-        std::cout << "Tick/Poll device..." << std::endl;
-    #if defined(WEBGPU_BACKEND_DAWN)
-        wgpuDeviceTick(device);
-    #elif defined(WEBGPU_BACKEND_WGPU)
-        wgpuDevicePoll(device, false, nullptr);
-    #elif defined(WEBGPU_BACKEND_EMSCRIPTEN)
-        emscripten_sleep(100);
-    #endif
-    }
-}
-
+// From LearnWebGPU
 WGPUAdapter requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions const* options) {
     // A simple structure holding the local information shared with the
     // onAdapterRequestEnded callback.
@@ -129,10 +95,7 @@ WGPUAdapter requestAdapterSync(WGPUInstance instance, WGPURequestAdapterOptions 
     // This is a C++ lambda function, but could be any function defined in the
     // global scope. It must be non-capturing (the brackets [] are empty) so
     // that it behaves like a regular C function pointer, which is what
-    // wgpuInstanceRequestAdapter expects (WebGPU being a C API). The workaround
-    // is to convey what we want to capture through the pUserData pointer,
-    // provided as the last argument of wgpuInstanceRequestAdapter and received
-    // by the callback as its last argument.
+    // wgpuInstanceRequestAdapter expects (WebGPU being a C API).
     auto onAdapterRequestEnded = [](WGPURequestAdapterStatus status, WGPUAdapter adapter, char const* message, void* pUserData) {
         UserData& userData = *reinterpret_cast<UserData*>(pUserData);
         if (status == WGPURequestAdapterStatus_Success) {
@@ -326,36 +289,6 @@ bool Application::Initialize() {
 
     wgpuAdapterRelease(adapter);
 
-    // Creation
-    InitializeBuffers();
-    depthTextureHolder.Initialize(device);
-
-    testTexture.Initialize(device, uvec3(256), TextureFormat::R32Float, true, true);
-    testInputTexture.Initialize(device, uvec3(256), TextureFormat::R32Float, true, true);
-
-    // Running
-    vector<SP::Parameter> testShaderParams = {
-      SP::Parameter(SP::UUniform{&uniformBuffer}),
-      SP::Parameter(SP::UTexture{&testTexture, true, false}),
-      SP::Parameter(SP::USampler{&testTexture})
-    };
-    testShader.Initialize(device, testShaderParams, surfaceFormat, depthTextureHolder, "/test_shader.wgsl");
-
-    vector<SP::Parameter> computeShaderParams = {
-      SP::Parameter(SP::UTexture{&testInputTexture, true, false}),
-      SP::Parameter(SP::USampler{&testInputTexture}),
-      SP::Parameter(SP::UTexture{&testTexture, true, true})
-    };
-
-    testComputeShader.Initialize(device, computeShaderParams, "/test_compute.wgsl");
-    bool finished = false;
-    testComputeShader.Dispatch(device, queue, uvec3(256), &finished);
-    while(!finished) {
-        wgpuPollEvents(device, true);
-    }
-
-    testComputeMeshGenerate();
-
     marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, surfaceFormat);
 
     return true;
@@ -363,16 +296,6 @@ bool Application::Initialize() {
 
 void Application::Terminate() {
     marchingCubesManager->Destroy();
-
-    testTexture.Destroy();
-    testInputTexture.Destroy();
-    testComputeShader.Destroy();
-
-    testShader.Destroy();
-
-    vertexBuffer.buffer.release();
-    indexBuffer.buffer.release();
-    uniformBuffer.buffer.release();
 
     wgpuSurfaceUnconfigure(surface);
     wgpuSurfaceRelease(surface);
@@ -388,14 +311,6 @@ void Application::MainLoop() {
     glfwPollEvents(); // Process input events
 
     marchingCubesManager->MainLoop();
-
-    // Update uniforms
-    float t = static_cast<float>(glfwGetTime());
-    queue.writeBuffer(uniformBuffer.buffer, offsetof(MyUniforms, time), &t, sizeof(float));
-    mat4x4 viewMat = camera.GetViewMatrix();
-    mat4x4 modelMat = glm::rotate(mat4(1.0f), t, vec3(0.0f, 1.0f, 0.0f));
-    queue.writeBuffer(uniformBuffer.buffer, offsetof(MyUniforms, modelMatrix), &modelMat, sizeof(mat4x4));
-    queue.writeBuffer(uniformBuffer.buffer, offsetof(MyUniforms, viewMatrix), &viewMat, sizeof(mat4x4));
 
     auto [surfaceTexture, targetView] = GetNextSurfaceViewData();
     if(!targetView) return;
@@ -453,17 +368,10 @@ void Application::MainLoop() {
     RenderPassEncoder renderPass = encoder.beginRenderPass(renderPassDesc);
 
     // What to draw here
-    // renderPass.setPipeline(testShader.pipeline);
-    // renderPass.setVertexBuffer(0, vertexBuffer.buffer, 0, vertexBuffer.size); // Could have CPU side vertex size? IDK if that would even help
-    // renderPass.setIndexBuffer(indexBuffer.buffer, IndexFormat::Uint32, 0, indexBuffer.size);
-    // renderPass.setBindGroup(0, testShader.bindGroup, 0, nullptr);
-    // renderPass.drawIndexed(indexCount, 1, 0, 0, 0);
-
     renderPass.setPipeline(marchingCubesManager->drawer.drawShader.pipeline);
     renderPass.setVertexBuffer(0, marchingCubesManager->meshGenerator.vertexBuffer.buffer, 0, marchingCubesManager->meshGenerator.vertexBuffer.size); // Could have CPU side vertex size? IDK if that would even help
     renderPass.setIndexBuffer(marchingCubesManager->meshGenerator.indexBuffer.buffer, IndexFormat::Uint32, 0, marchingCubesManager->meshGenerator.indexBuffer.size);
     renderPass.setBindGroup(0, marchingCubesManager->drawer.drawShader.bindGroup, 0, nullptr);
-    renderPass.drawIndexed(indexCount, 1, 0, 0, 0);
     renderPass.drawIndexedIndirect(marchingCubesManager->drawer.indirectDrawArgs.buffer, 0);
 
     renderPass.end();
@@ -538,58 +446,4 @@ RequiredLimits Application::GetRequiredLimits(Adapter adapter) const {
     // We can only draw 2 triangles with these limits..
 
     return requiredLimits;
-}
-
-void Application::InitializeBuffers() {
-    const uint tempTriCount = 64000;
-
-    // indices must be uint16_t or uint32_t
-    indexCount = tempTriCount*3;//static_cast<uint32_t>(indices.size());
-
-    // Vertex Buffer
-    vertexBuffer = createBuffer(device, sizeof(float)*6*3* tempTriCount,//positions.size() * sizeof(float), 
-        BufferUsage::CopyDst | BufferUsage::Vertex | BufferUsage::Storage,
-        false);
-
-    // Index Buffer
-    indexBuffer = createBuffer(device, sizeof(uint32_t)*3* tempTriCount,//indices.size()*sizeof(uint32_t),
-        BufferUsage::CopyDst | BufferUsage::Index | BufferUsage::Storage,
-        false);
-    
-    // Atomic Count Buffer
-    vector<uint32_t> counts = {0,0};
-    countBuffer = createBuffer(
-        device, 2 * sizeof(uint32_t), 
-        BufferUsage::CopyDst | BufferUsage::Storage, false);
-    queue.writeBuffer(countBuffer.buffer, 0, counts.data(), countBuffer.size);
-
-    // Uniform Buffer
-    uniformBuffer = createBuffer(device, sizeof(MyUniforms), BufferUsage::CopyDst | BufferUsage::Uniform, false);
-    MyUniforms uniforms;
-    uniforms.time = 1.0f;
-    uniforms.color = vec4(1.0,0.0,0.0,1.0);
-    uniforms.modelMatrix = mat4(1.0f);
-    uniforms.projectionMatrix = camera.GetProjectionMatrix();
-    uniforms.viewMatrix = camera.GetViewMatrix();
-    queue.writeBuffer(uniformBuffer.buffer, 0, &uniforms, sizeof(MyUniforms));
-
-    // !!! Buffers must be multiple of 4 bytes
-    // So make sure your data AND buffer is a good size
-    // Could be arbitrary data just avoid trash data
-}
-
-void Application::testComputeMeshGenerate() {
-    // Temp placement oc, needs textures to be generated
-    ComputeShader meshGenerateShader;
-    
-    vector<SP::Parameter> params = {
-        SP::Parameter(SP::UBuffer{&vertexBuffer, true}),
-        SP::Parameter(SP::UBuffer{&indexBuffer, true}),
-        SP::Parameter(SP::UBuffer{&countBuffer, true}),
-        SP::Parameter(SP::UTexture{&testTexture, true, false}),
-        SP::Parameter(SP::USampler{&testTexture})
-    };
-    meshGenerateShader.Initialize(device, params, "/mesh_generate.wgsl");
-    meshGenerateShader.Dispatch(device, queue, uvec3(16), nullptr);
-    meshGenerateShader.Destroy();
 }

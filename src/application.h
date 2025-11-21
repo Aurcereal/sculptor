@@ -35,9 +35,6 @@ class Application {
     inline Queue& GetQueue() { return queue; }
 
     private:
-    void testComputeMeshGenerate();
-    Camera camera;
-
     struct MyUniforms {
         mat4x4 projectionMatrix;
         mat4x4 viewMatrix;
@@ -56,20 +53,6 @@ class Application {
     Queue queue;
     Surface surface;
     TextureFormat surfaceFormat = TextureFormat::Undefined;
-
-    DepthTexture depthTextureHolder;
-    Shader testShader;
-
-    void InitializeBuffers();
-    BufferHolder vertexBuffer;
-    BufferHolder indexBuffer;
-    BufferHolder countBuffer;
-    BufferHolder uniformBuffer;
-    uint32_t indexCount;
-
-    ComputeShader testComputeShader;
-    TextureHolder testInputTexture;
-    TextureHolder testTexture;
 
     //
     uPtr<MarchingCubes::Manager> marchingCubesManager;
