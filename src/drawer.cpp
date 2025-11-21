@@ -69,6 +69,8 @@ void MarchingCubes::Drawer::UpdateIndexCount() {
 }
 
 void MarchingCubes::Drawer::Destroy() {
+    indirectDrawArgs.buffer.release();
+    fillIndexCountShader.Destroy();
     uniformBuffer.buffer.release();
     depthTextureHolder.Destroy();
     drawShader.Destroy();

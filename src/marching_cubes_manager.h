@@ -43,7 +43,7 @@ namespace MarchingCubes {
         // void UpdateField();
 
         TextureHolder fieldTexture;
-        // TextureHolder fieldScratchTexture;
+        TextureHolder fieldScratchTexture;
 
         void Destroy();
 
@@ -52,7 +52,8 @@ namespace MarchingCubes {
 
         ComputeShader fieldTextureInitializer;
         // ComputeShader fieldTextureDrawer;
-        // ComputeShader copybackShader; // Copy fieldScratchTexture -> fieldTexture
+        ComputeShader copybackShader; 
+        void CopyScratchToField(); // Copy fieldScratchTexture -> fieldTexture
         
     };
 
