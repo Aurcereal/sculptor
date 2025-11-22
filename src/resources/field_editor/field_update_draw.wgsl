@@ -16,7 +16,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 
     //
     let diff = p - brushPos;
-    let falloff = max(0., 1.-dot(diff, diff)/(brushSize*brushSize));
+    let falloff = max(0., 1.-length(diff.xy)/brushSize);//dot(diff, diff)/(brushSize*brushSize));
     let amt = brushMult * falloff;
 
     let curr = textureLoad(inputTexture, id, 0);

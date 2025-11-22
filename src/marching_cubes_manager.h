@@ -19,9 +19,37 @@ namespace MarchingCubes {
 
     class Manager;
 
+    // https://eliemichel.github.io/WebGPU-AutoLayout/
     struct Parameters {
-        uint textureResolution;
-        uint marchingCubesResolution;
+        uint32_t textureResolution;
+        uint32_t marchingCubesResolution;
+        float _pad0[2];
+    };
+
+    struct BrushParameters {
+        mat4x4 brushInverseTR;
+        uint32 brushType;
+        float brushMult;
+        float brushSize;
+        float _pad0[1];
+    };
+
+    class UniformManager {
+    public:
+        void Initialize(uint32 textureResolution, uint32 marchingCubesResolution);
+        
+        void UpdateBrushTransform(const mat4x4&);
+        void UpdateBrushMult(float);
+        void UpdateBrushSize(float);
+        void UpdateBrushType(uint32);
+
+    private:
+        BufferHolder parameterBuffer;
+        BufferHolder brushParameterBuffer;
+
+        Parameters parameters;
+        BrushParameters brushParameters;
+        
     };
 
     class Raycaster {
@@ -115,7 +143,7 @@ namespace MarchingCubes {
         FieldEditor fieldEditor;
         MeshGenerator meshGenerator;
         Drawer drawer;
-        Parameters parameters;
+        Parameters parameters; // TODO: make it the uniformmanager which holds parameters
 
         Camera camera;
 
