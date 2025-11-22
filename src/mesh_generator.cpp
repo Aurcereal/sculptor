@@ -32,11 +32,7 @@ void MarchingCubes::MeshGenerator::ResetCountBuffer() {
 
 void MarchingCubes::MeshGenerator::GenerateMesh() {
     ResetCountBuffer();
-    bool finished = false;
-    meshGenerationShader.Dispatch(manager->device, manager->queue, uvec3(manager->parameters.marchingCubesResolution), &finished);
-    while(!finished) {
-        wgpuPollEvents(manager->device, true);
-    }
+    meshGenerationShader.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.marchingCubesResolution));
 }
 
 void MarchingCubes::MeshGenerator::Destroy() {

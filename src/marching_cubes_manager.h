@@ -40,7 +40,7 @@ namespace MarchingCubes {
 
         void Initialize();
         void GenerateField();
-        // void UpdateField();
+        void UpdateField();
 
         TextureHolder fieldTexture;
         TextureHolder fieldScratchTexture;
@@ -50,10 +50,11 @@ namespace MarchingCubes {
     private:
         Manager *manager;
 
-        ComputeShader fieldTextureInitializer;
-        // ComputeShader fieldTextureDrawer;
+        ComputeShader fieldInitializer;
         ComputeShader copybackShader; 
         void CopyScratchToField(); // Copy fieldScratchTexture -> fieldTexture
+
+        ComputeShader fieldDrawUpdater;
         
     };
 

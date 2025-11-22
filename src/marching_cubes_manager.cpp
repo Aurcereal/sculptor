@@ -19,6 +19,10 @@ MarchingCubes::Manager::Manager(const Device* d, const Queue* q, TextureFormat s
 
 void MarchingCubes::Manager::MainLoop() {
     drawer.UpdateUniforms();
+
+    fieldEditor.UpdateField();
+    meshGenerator.GenerateMesh();
+    drawer.UpdateIndexCount();
 }
 
 void MarchingCubes::Manager::Destroy() {
