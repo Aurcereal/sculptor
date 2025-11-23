@@ -18,6 +18,7 @@
 #include "depth_texture.h"
 #include "marching_cubes_manager.h"
 #include "uPtr_macros.h"
+#include "input_manager.h"
 
 using namespace wgpu;
 using namespace glm;
@@ -33,6 +34,8 @@ class Application {
 
     inline Device& GetDevice() { return device; }
     inline Queue& GetQueue() { return queue; }
+
+    uvec2 resolution;
 
     private:
     struct MyUniforms {
@@ -56,4 +59,5 @@ class Application {
 
     //
     uPtr<MarchingCubes::Manager> marchingCubesManager;
+    InputManager inputManager;
 };

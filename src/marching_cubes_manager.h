@@ -12,6 +12,7 @@
 #include "compute_shader.h"
 #include "shader.h"
 #include "camera.h"
+#include "input_manager.h"
 
 using namespace glm;
 
@@ -154,9 +155,10 @@ namespace MarchingCubes {
 
     class Manager {
         public:
-        Manager(const Device*, const Queue*, TextureFormat screenFormat);
+        Manager(const Device*, const Queue*, InputManager*, TextureFormat screenFormat);
         Device device;
         Queue queue;
+        InputManager *inputManager;
 
         UniformManager uniformManager;
         Raycaster raycaster;

@@ -1,8 +1,19 @@
 #include "marching_cubes_manager.h"
 
-MarchingCubes::Manager::Manager(const Device* d, const Queue* q, TextureFormat screenFormat) : 
-    device(*d), queue(*q), camera(), uniformManager(this), fieldEditor(this), meshGenerator(this), drawer(this) 
+void testMouseClickCallback(vec2 pos) {
+    std::cout << "CLICKED: " << pos.x << " " << pos.y << std::endl;
+}
+
+void testMouseMoveCallback(vec2 delta) {
+    std::cout << "MOUSE MOVED: " << delta.x << " " << delta.y << std::endl;
+}
+
+MarchingCubes::Manager::Manager(const Device* d, const Queue* q, InputManager *im, TextureFormat screenFormat) : 
+    device(*d), queue(*q), inputManager(im), camera(), uniformManager(this), fieldEditor(this), meshGenerator(this), drawer(this) 
 {
+    inputManager->AddOnMouseClickListener(std::bind(&testMouseClickCallback, std::placeholders::_1));
+    inputManager->AddOnMouseMoveListener(std::bind(&testMouseMoveCallback, std::placeholders::_1));
+
     uniformManager.Initialize(256, 16, camera);
 
     fieldEditor.Initialize();

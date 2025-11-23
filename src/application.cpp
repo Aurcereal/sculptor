@@ -209,14 +209,33 @@ bool Application::Initialize() {
         return false;
     }
 
+    resolution = uvec2(640, 480); // TODO: use this in code base and make it resizeable
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Tell GLFW not to think about API since it wouldn't know WebGPU anyways
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // Disallow resizing since it causes crash for now
-    window = glfwCreateWindow(640, 480, "Learn WebGPU!!", nullptr, nullptr);
+    window = glfwCreateWindow(resolution.x, resolution.y, "Learn WebGPU!!", nullptr, nullptr);
     if(!window) {
         std::cerr << "Couldn't open GLFW window!!" << std::endl;
         glfwTerminate();
         return false;
     }
+
+    // Setup GLFW Input Callbacks
+    glfwSetWindowUserPointer(window, this);
+    // frame buffer size callback here
+    glfwSetCursorPosCallback(window, [](GLFWwindow *window, double xpos, double ypos) {
+        auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+        vec2 pos = vec2(xpos, ypos)/vec2(app->resolution);
+        pos.y = 1.0f - pos.y;
+        if(app) app->inputManager.OnMouseMove(pos);
+    });
+    glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int /*button*/, int /*action*/, int /*mods*/) {
+        auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+        if(app) app->inputManager.OnMouseClick();
+    });
+    glfwSetScrollCallback(window, [](GLFWwindow */*window*/, double /*xoffset*/, double /*yoffset*/) {
+        //auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+        //if(app) app->inputManager.OnMouseClick();
+    });
 
     // Create surface
     surface = glfwGetWGPUSurface(instance, window);
@@ -274,8 +293,8 @@ bool Application::Initialize() {
     WGPUSurfaceConfiguration config = {};
     config.nextInChain = nullptr;
 
-    config.width = 640;
-    config.height = 480;
+    config.width = resolution.x;
+    config.height = resolution.y;
     surfaceFormat = wgpuSurfaceGetPreferredFormat(surface, adapter);
     config.format = surfaceFormat; // RGBA and channel size chosen by adapter
     config.viewFormatCount = 0;
@@ -288,8 +307,7 @@ bool Application::Initialize() {
     wgpuSurfaceConfigure(surface, &config);
 
     wgpuAdapterRelease(adapter);
-
-    marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, surfaceFormat);
+    marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, &inputManager, surfaceFormat);
 
     return true;
 }
