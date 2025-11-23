@@ -23,7 +23,8 @@ namespace MarchingCubes {
     struct Parameters {
         uint32_t textureResolution;
         uint32_t marchingCubesResolution;
-        float _pad0[2];
+        float marchingCubesThreshold;
+        float _pad0[1];
     };
 
     struct BrushParameters {

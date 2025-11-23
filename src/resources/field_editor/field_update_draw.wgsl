@@ -1,26 +1,30 @@
 @group(0) @binding(0) var inputTexture: texture_3d<f32>;
 @group(0) @binding(1) var outputTexture: texture_storage_3d<r32float,write>;
 
+struct Parameters {
+    texRes : u32,
+    marchingCubesRes : u32,
+    marchingCubesThreshold : f32
+};
+@group(0) @binding(2) var<uniform> u_Parameters : Parameters;
+
 struct CameraTimeParameters {
     projectionMatrix : mat4x4f,
     viewMatrix : mat4x4f,
     modelMatrix : mat4x4f,
     time : f32
 };
-@group(0) @binding(2) var<uniform> u_CameraTimeParameters: CameraTimeParameters;
-
-// TODO: Use UNIFORMS
-const resolution: u32 = 256;
+@group(0) @binding(3) var<uniform> u_CameraTimeParameters: CameraTimeParameters; // Probably only need this uniform temporarily
 
 @compute
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
-    var p = (vec3f(id.xyz)/f32(resolution))*2.-1.;
+    var p = (vec3f(id.xyz)/f32(u_Parameters.texRes))*2.-1.;
 
     // TODO: uniform
-    let brushPos = vec3f(0., sin(u_CameraTimeParameters.time*8.0)*0.6, 0.);
+    let brushPos = vec3f(0., sin(u_CameraTimeParameters.time*8.0)*0.6, 0.5);
     let brushSize = 0.2; // TODO: uniform should be in world space, convert it to uv space
-    let brushMult = 0.3;
+    let brushMult = -0.3;
 
     //
     let diff = p - brushPos;

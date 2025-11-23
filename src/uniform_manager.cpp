@@ -2,7 +2,7 @@
 
 void MarchingCubes::UniformManager::Initialize(uint32 texRes, uint32 marchingCubesRes, const Camera& cam) {
     // Initialize structs
-    parameters = {texRes, marchingCubesRes};
+    parameters = {texRes, marchingCubesRes, 0.5f};
     brushParameters = {mat4x4(1.0f), 0, 1.0f, 1.0f};
     cameraTimeParameters = {cam.GetProjectionMatrix(), cam.GetViewMatrix(), mat4(1.0f), 0.0f};
 

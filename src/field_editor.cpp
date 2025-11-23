@@ -10,7 +10,8 @@ void MarchingCubes::FieldEditor::Initialize() {
 
     //
     vector<ShaderParameter::Parameter> params = {
-        SP::Parameter(SP::UTexture{&fieldScratchTexture, true, true}) // TEMP, make it fieldTexture then the update will write to scratch
+        SP::Parameter(SP::UTexture{&fieldTexture, true, true}),
+        SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer})
     };
     fieldInitializer.Initialize(manager->device, params, "/field_editor/initialize_field.wgsl");
 
@@ -25,6 +26,7 @@ void MarchingCubes::FieldEditor::Initialize() {
     vector<ShaderParameter::Parameter> drawUpdateParams = {
         SP::Parameter(SP::UTexture{&fieldTexture, true, false}),
         SP::Parameter(SP::UTexture{&fieldScratchTexture, true, true}),
+        SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.cameraTimeUniformBuffer})
     };
     fieldDrawUpdater.Initialize(manager->device, drawUpdateParams, "./field_editor/field_update_draw.wgsl");

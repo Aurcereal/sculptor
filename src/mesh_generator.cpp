@@ -18,7 +18,8 @@ void MarchingCubes::MeshGenerator::Initialize() {
         SP::Parameter(SP::UBuffer{&indexBuffer, true}),
         SP::Parameter(SP::UBuffer{&countBuffer, true}),
         SP::Parameter(SP::UTexture{&manager->fieldEditor.fieldTexture, true, false}),
-        SP::Parameter(SP::USampler{&manager->fieldEditor.fieldTexture})
+        SP::Parameter(SP::USampler{&manager->fieldEditor.fieldTexture}),
+        SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer})
     };
     meshGenerationShader.Initialize(manager->device, shaderParams, "/mesh_generator/generate_mesh.wgsl");
     

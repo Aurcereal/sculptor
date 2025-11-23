@@ -5,6 +5,13 @@
 @group(0) @binding(3) var fieldTexture: texture_3d<f32>;
 @group(0) @binding(4) var fieldSampler: sampler;
 
+struct Parameters {
+    texRes : u32,
+    marchingCubesRes : u32,
+    marchingCubesThreshold : f32
+};
+@group(0) @binding(5) var<uniform> u_MarchingCubesParameters : Parameters;
+
 var<private> cubeConfigToEdgeCuts: array<i32, 4096> = array(
 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -303,10 +310,6 @@ var<private> cubePointsArray: array<vec3f, 8> = array(
     vec3f(-0.5, 0.5, 0.5)
 );
 
-// make uniforms later, uniform struct
-const resolution: u32 = 16;
-const threshold: f32 = 0.5;
-
 var<private> edgeToVertexA: array<i32, 12> = array(
     0, 1, 2, 3, 
     4, 5, 6, 7,
@@ -330,12 +333,15 @@ fn edgeToPosB(e: i32) -> vec3f {
 }
 
 fn uvToWorldSpace(uv: vec3f) -> vec3f {
-    return 2.*(uv-vec3f(0.5)); // make a uniform transform mat
+    return 2.*(uv-vec3f(0.5)); // TODO: make a uniform transform mat
 }
 
 @compute 
 @workgroup_size(4, 4, 4) // TODO: make 3D
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
+    let resolution = u_MarchingCubesParameters.marchingCubesRes;
+    let threshold = u_MarchingCubesParameters.marchingCubesThreshold;
+
     let cubeSize = 1.0/f32(resolution);
     let uv = (vec3f(id)+vec3f(0.5))*cubeSize;
 
