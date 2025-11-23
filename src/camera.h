@@ -15,7 +15,7 @@ class Camera {
     
     public:
 
-    mat4 GetViewMatrix();
-    mat4 GetProjectionMatrix();
+    mat4 GetViewMatrix() const;
+    mat4 GetProjectionMatrix() const;
     Camera();
 };

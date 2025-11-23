@@ -34,21 +34,43 @@ namespace MarchingCubes {
         float _pad0[1];
     };
 
+    struct CameraTimeUniform {
+        mat4x4 projectionMatrix;
+        mat4x4 viewMatrix;
+        mat4x4 modelMatrix;
+        float time;
+        float _pad[3];
+    };
+
     class UniformManager {
     public:
-        void Initialize(uint32 textureResolution, uint32 marchingCubesResolution);
+        inline UniformManager(Manager *m) : manager(m) {}
+
+        void Initialize(uint32 textureResolution, uint32 marchingCubesResolution, const Camera&);
         
+        void UpdateResolutions(const uint32 *newTexResolution, const uint32 *newMarchingCubesResolution);
+
         void UpdateBrushTransform(const mat4x4&);
         void UpdateBrushMult(float);
         void UpdateBrushSize(float);
         void UpdateBrushType(uint32);
 
-    private:
+        void UpdateViewMatrix(const Camera&);
+        void UpdateProjectionMatrix(const Camera&);
+        void UpdateModelMatrix(const mat4x4&);
+        void UpdateTime();
+
+        void Destroy();
+
         BufferHolder parameterBuffer;
         BufferHolder brushParameterBuffer;
+        BufferHolder cameraTimeUniformBuffer;
 
         Parameters parameters;
         BrushParameters brushParameters;
+        CameraTimeUniform cameraTimeParameters;
+    private:
+        Manager *manager;
         
     };
 
@@ -115,7 +137,6 @@ namespace MarchingCubes {
         inline Drawer(Manager *m) : manager(m) {}
 
         void Initialize(TextureFormat);
-        void UpdateUniforms();
         void UpdateIndexCount();
         
         void Destroy();
@@ -126,9 +147,6 @@ namespace MarchingCubes {
 
     private:
         Manager *manager;
-        
-        BufferHolder uniformBuffer;
-
         ComputeShader fillIndexCountShader;
         
     };
@@ -139,11 +157,11 @@ namespace MarchingCubes {
         Device device;
         Queue queue;
 
+        UniformManager uniformManager;
         Raycaster raycaster;
         FieldEditor fieldEditor;
         MeshGenerator meshGenerator;
         Drawer drawer;
-        Parameters parameters; // TODO: make it the uniformmanager which holds parameters
 
         Camera camera;
 

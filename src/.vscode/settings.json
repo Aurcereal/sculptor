@@ -65,6 +65,7 @@
         "ratio": "cpp",
         "sstream": "cpp",
         "string": "cpp",
-        "marching_uniformer": "cpp"
+        "marching_uniformer": "cpp",
+        "array": "cpp"
     }
 }

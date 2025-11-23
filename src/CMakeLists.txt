@@ -33,7 +33,8 @@ set(SOURCE_FILES
 	marching_cubes_manager.cpp
 	field_editor.cpp
 	mesh_generator.cpp
-	drawer.cpp)
+	drawer.cpp
+	uniform_manager.cpp)
 
 add_executable(App ${SOURCE_FILES})
 

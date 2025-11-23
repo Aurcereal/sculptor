@@ -7,7 +7,7 @@ Camera::Camera() :
     nearClip(0.01f), farClip(500.0f)
     {}
 
-mat4x4 Camera::GetViewMatrix() {
+mat4x4 Camera::GetViewMatrix() const {
     mat4 rot = transpose(mat4(
         vec4(ri, 0.0f),
         vec4(up, 0.0f),
@@ -18,7 +18,7 @@ mat4x4 Camera::GetViewMatrix() {
     return rot * trans;
 }
 
-mat4x4 Camera::GetProjectionMatrix() {
+mat4x4 Camera::GetProjectionMatrix() const {
     const float tempRatio = 640.0f / 480.0f;
     return glm::perspective(fovY, tempRatio, nearClip, farClip);
 }
