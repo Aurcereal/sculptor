@@ -82,8 +82,13 @@ namespace MarchingCubes {
             vec3 norm;
         };
 
-        public:
+    public:
+        inline Raycaster(Manager *m) : manager(m) {}
+
         Intersection RayFieldIntersect(vec3 origin, vec3 direction);  
+    
+    private:
+        Manager *manager;
     };
 
     class FieldEditor {
@@ -169,6 +174,9 @@ namespace MarchingCubes {
         Camera camera;
 
         void MainLoop();
+        void OnMouseClick(vec2);
+        void OnMouseMove(vec2);
+
         void Destroy();
 
         private:

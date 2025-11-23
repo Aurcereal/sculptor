@@ -14,7 +14,8 @@ void InputManager::OnMouseMove(vec2 newPos) {
     mousePosition = newPos;
 }
 
-void InputManager::OnMouseClick() {
+void InputManager::OnMouseClick(bool leftMouse, bool pressDown) {
+    if(!leftMouse || !pressDown) return;
     for(auto &f : onMouseClickListeners) {
         f(mousePosition);
     }

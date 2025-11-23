@@ -15,6 +15,7 @@ class Camera {
     
     public:
 
+    vec3 Raycast(vec2 uv) const;
     mat4 GetViewMatrix() const;
     mat4 GetProjectionMatrix() const;
     Camera();

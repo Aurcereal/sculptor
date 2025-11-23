@@ -10,7 +10,7 @@ using namespace std;
 class InputManager {
 public:
     void OnMouseMove(vec2 newPos);
-    void OnMouseClick();
+    void OnMouseClick(bool leftMouse, bool pressDown);
 
     void AddOnMouseMoveListener(const std::function<void(vec2)>&);
     void AddOnMouseClickListener(const std::function<void(vec2)>&);

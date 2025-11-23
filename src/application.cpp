@@ -228,9 +228,9 @@ bool Application::Initialize() {
         pos.y = 1.0f - pos.y;
         if(app) app->inputManager.OnMouseMove(pos);
     });
-    glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int /*button*/, int /*action*/, int /*mods*/) {
+    glfwSetMouseButtonCallback(window, [](GLFWwindow *window, int button, int action, int /*mods*/) {
         auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-        if(app) app->inputManager.OnMouseClick();
+        if(app) app->inputManager.OnMouseClick(button == 0, action == 1);
     });
     glfwSetScrollCallback(window, [](GLFWwindow */*window*/, double /*xoffset*/, double /*yoffset*/) {
         //auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));

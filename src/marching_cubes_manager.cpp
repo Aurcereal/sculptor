@@ -1,18 +1,10 @@
 #include "marching_cubes_manager.h"
 
-void testMouseClickCallback(vec2 pos) {
-    std::cout << "CLICKED: " << pos.x << " " << pos.y << std::endl;
-}
-
-void testMouseMoveCallback(vec2 delta) {
-    std::cout << "MOUSE MOVED: " << delta.x << " " << delta.y << std::endl;
-}
-
 MarchingCubes::Manager::Manager(const Device* d, const Queue* q, InputManager *im, TextureFormat screenFormat) : 
-    device(*d), queue(*q), inputManager(im), camera(), uniformManager(this), fieldEditor(this), meshGenerator(this), drawer(this) 
+    device(*d), queue(*q), inputManager(im), camera(), uniformManager(this), raycaster(this), fieldEditor(this), meshGenerator(this), drawer(this) 
 {
-    inputManager->AddOnMouseClickListener(std::bind(&testMouseClickCallback, std::placeholders::_1));
-    inputManager->AddOnMouseMoveListener(std::bind(&testMouseMoveCallback, std::placeholders::_1));
+    inputManager->AddOnMouseClickListener(std::bind(&MarchingCubes::Manager::OnMouseClick, this, std::placeholders::_1));
+    inputManager->AddOnMouseMoveListener(std::bind(&MarchingCubes::Manager::OnMouseMove, this, std::placeholders::_1));
 
     uniformManager.Initialize(256, 16, camera);
 
@@ -33,6 +25,14 @@ void MarchingCubes::Manager::MainLoop() {
     fieldEditor.UpdateField();
     meshGenerator.GenerateMesh();
     drawer.UpdateIndexCount();
+}
+
+void MarchingCubes::Manager::OnMouseClick(vec2 pos) {
+    vec3 rd = camera.Raycast(pos);
+    std::cout << "CLICKED: " << rd.x << " " << rd.y << " " << rd.z << std::endl;
+}
+void MarchingCubes::Manager::OnMouseMove(vec2 delta) {
+    std::cout << "MOUSE MOVED: " << delta.x << " " << delta.y << std::endl;
 }
 
 void MarchingCubes::Manager::Destroy() {
