@@ -39,7 +39,7 @@ fn rayBoxIntersect(ro : vec3f, ird : vec3f) -> vec2f {
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     if(id.x + id.y + id.z == 0u) {
-        let stepSize = 0.05;
+        //let stepSize = 0.04;
 
         let ro = raycastInput.origin;
         let rd = raycastInput.direction;
@@ -52,17 +52,37 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             let hitT = max(ts.x, 0.0); // For the inside box we'll start marching at ro
             var currT = hitT+0.001;
 
-            let lHitPos = lro + lrd*currT;
-            // let lNorm = 
+            let stepSize = (ts.y-ts.x)/100.0;
+            for(var i: u32 = 0; i<100; i=i+1) {
+                let currUV = lro + currT*lrd;
+                let s = textureSampleLevel(fieldTexture, fieldSampler, currUV, 0.0).r;
+                if(s >= u_Parameters.marchingCubesThreshold) {
+                    let lHitPos = lro + lrd*currT;
+                    // let lNorm = 
 
-            let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
-            let norm = vec3f(0.0,1.0,0.0);
+                    let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
+                    let norm = vec3f(0.0,1.0,0.0);
 
-            intersectionBuffer[0] = vec4f(hitPos, 1.0);
-            intersectionBuffer[1] = vec4f(norm, 0.0);
-        } else {
-            intersectionBuffer[0] = vec4f(0.0,0.0,0.0,0.0);
-            intersectionBuffer[1] = vec4f(0.0,0.0,0.0,0.0);
+                    intersectionBuffer[0] = vec4f(hitPos, 1.0);
+                    intersectionBuffer[1] = vec4f(norm, 0.0);
+
+                    return;
+                }
+                currT += stepSize;
+            }
+
+            // let lHitPos = lro + lrd*currT;
+            // // let lNorm = 
+
+            // let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
+            // let norm = vec3f(0.0,1.0,0.0);
+
+            // intersectionBuffer[0] = vec4f(hitPos, 1.0);
+            // intersectionBuffer[1] = vec4f(norm, 0.0);
+            
         }
+
+        intersectionBuffer[0] = vec4f(0.0,0.0,0.0,0.0);
+        intersectionBuffer[1] = vec4f(0.0,0.0,0.0,0.0);
     }
 }

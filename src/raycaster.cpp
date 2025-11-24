@@ -21,7 +21,7 @@ void MarchingCubes::Raycaster::InitializeWithDependencies() {
         SP::Parameter(SP::USampler{&manager->fieldEditor.fieldTexture}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.raycastInputUniformBuffer}),
         SP::Parameter(SP::UBuffer{&intersectionBuffer, true}),
-        SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer})
+        SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer}),
     };
     computeIntersection.Initialize(manager->device, params, "./raycasting/ray_field_intersect.wgsl");
 }

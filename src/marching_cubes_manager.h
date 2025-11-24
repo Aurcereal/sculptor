@@ -178,10 +178,11 @@ namespace MarchingCubes {
 
         void OnLMouseClick(vec2);
         void OnLMouseRelease(vec2);
-        void OnMouseMove(vec2);
+        void OnMouseMove(vec2 newPos, vec2 delta);
+
+        bool mouseDown = false;
 
     private:
-        bool mouseDown = false;
         Manager *manager;
     };
 

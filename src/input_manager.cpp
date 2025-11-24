@@ -1,6 +1,6 @@
 #include "input_manager.h"
 
-void InputManager::AddOnMouseMoveListener(const std::function<void(vec2)> &f) {
+void InputManager::AddOnMouseMoveListener(const std::function<void(vec2, vec2)> &f) {
     onMouseMoveListeners.push_back(f);
 }
 void InputManager::AddOnMouseClickListener(const std::function<void(vec2)> &f) {
@@ -12,7 +12,7 @@ void InputManager::AddOnMouseReleaseListener(const std::function<void(vec2)> &f)
 
 void InputManager::OnMouseMove(vec2 newPos) {
     for(auto &f : onMouseMoveListeners) {
-        f(newPos - mousePosition);
+        f(newPos, newPos - mousePosition);
     }
     mousePosition = newPos;
 }

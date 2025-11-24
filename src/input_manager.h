@@ -12,14 +12,14 @@ public:
     void OnMouseMove(vec2 newPos);
     void OnMouseClick(bool leftMouse, bool pressDown);
 
-    void AddOnMouseMoveListener(const std::function<void(vec2)>&);
+    void AddOnMouseMoveListener(const std::function<void(vec2, vec2)>&);
     void AddOnMouseClickListener(const std::function<void(vec2)>&);
     void AddOnMouseReleaseListener(const std::function<void(vec2)>&);
 
-private:
     vec2 mousePosition;
 
-    vector<std::function<void(vec2)>> onMouseMoveListeners;
+private:
+    vector<std::function<void(vec2, vec2)>> onMouseMoveListeners;
     vector<std::function<void(vec2)>> onMouseClickListeners;
     vector<std::function<void(vec2)>> onMouseReleaseListeners;
 };

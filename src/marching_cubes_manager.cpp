@@ -6,7 +6,7 @@ MarchingCubes::Manager::Manager(const Device* d, const Queue* q, InputManager *i
 {
     inputManager->AddOnMouseClickListener(std::bind(&MarchingCubes::InputHandler::OnLMouseClick, &inputHandler, std::placeholders::_1));
     inputManager->AddOnMouseReleaseListener(std::bind(&MarchingCubes::InputHandler::OnLMouseRelease, &inputHandler, std::placeholders::_1));
-    inputManager->AddOnMouseMoveListener(std::bind(&MarchingCubes::InputHandler::OnMouseMove, &inputHandler, std::placeholders::_1));
+    inputManager->AddOnMouseMoveListener(std::bind(&MarchingCubes::InputHandler::OnMouseMove, &inputHandler, std::placeholders::_1, std::placeholders::_2));
 
     mat4x4 bbxTRS = glm::rotate(mat4(1.0f), 0.4f, vec3(1,0,0)) * glm::scale(mat4(1.0f), vec3(boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
@@ -27,9 +27,13 @@ MarchingCubes::Manager::Manager(const Device* d, const Queue* q, InputManager *i
 }
 
 void MarchingCubes::Manager::MainLoop() {
-    uniformManager.UpdateModelMatrix(glm::rotate(mat4(1.0f), static_cast<float>(glfwGetTime()), vec3(0.0f, 1.0f, 0.0f)));
+    //uniformManager.UpdateModelMatrix(glm::rotate(mat4(1.0f), static_cast<float>(glfwGetTime()), vec3(0.0f, 1.0f, 0.0f)));
     uniformManager.UpdateViewMatrix(camera);
     uniformManager.UpdateTime();
+
+    if(inputHandler.mouseDown) {
+        raycaster.RayFieldIntersect(camera.pos, camera.Raycast(inputManager->mousePosition));
+    }
 
     fieldEditor.UpdateField();
     meshGenerator.GenerateMesh();
@@ -37,18 +41,18 @@ void MarchingCubes::Manager::MainLoop() {
 }
 
 void MarchingCubes::InputHandler::OnLMouseClick(vec2 pos) {
+    mouseDown = true;
     vec3 rd = manager->camera.Raycast(pos);
     std::cout << "CLICKED: " << rd.x << " " << rd.y << " " << rd.z << std::endl;
     manager->raycaster.RayFieldIntersect(manager->camera.pos, rd);
-    mouseDown = true;
 }
 void MarchingCubes::InputHandler::OnLMouseRelease(vec2) {
     std::cout << "RELEASE" << std::endl;
     mouseDown = false;
     manager->raycaster.ResetIntersectionBuffer();
 }
-void MarchingCubes::InputHandler::OnMouseMove(vec2) {
-    //std::cout << "MOUSE MOVED: " << delta.x << " " << delta.y << std::endl;
+void MarchingCubes::InputHandler::OnMouseMove(vec2, vec2) {
+    
 }
 
 void MarchingCubes::Manager::Destroy() {
