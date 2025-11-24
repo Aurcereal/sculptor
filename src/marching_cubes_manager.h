@@ -172,13 +172,27 @@ namespace MarchingCubes {
         
     };
 
+    class InputHandler {
+    public:
+        inline InputHandler(Manager *m) : manager(m) {}
+
+        void OnLMouseClick(vec2);
+        void OnLMouseRelease(vec2);
+        void OnMouseMove(vec2);
+
+    private:
+        bool mouseDown = false;
+        Manager *manager;
+    };
+
     class Manager {
-        public:
+    public:
         Manager(const Device*, const Queue*, InputManager*, TextureFormat screenFormat);
         Device device;
         Queue queue;
         InputManager *inputManager;
-
+        
+        InputHandler inputHandler;
         UniformManager uniformManager;
         Raycaster raycaster;
         FieldEditor fieldEditor;
@@ -190,12 +204,10 @@ namespace MarchingCubes {
         Parameters parameters;
 
         void MainLoop();
-        void OnMouseClick(vec2);
-        void OnMouseMove(vec2);
 
         void Destroy();
 
-        private:
+    private:
 
         float boundingBoxScale;
         

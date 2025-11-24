@@ -6,14 +6,14 @@
 using namespace glm;
 
 class Camera {
-    private:
+private:
 
-    vec3 pos;
     vec3 ri, up, fo;
     float fovY;
     float nearClip, farClip;
     
-    public:
+public:
+    vec3 pos;
 
     vec3 Raycast(vec2 uv) const;
     mat4 GetViewMatrix() const;

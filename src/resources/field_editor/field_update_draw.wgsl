@@ -29,7 +29,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let pos = intersectionBuffer[0];
     if(pos.a > 0.1) {
         // TODO: uniform
-        let brushPos = pos.xyz;//vec3f(0., sin(u_CameraTimeParameters.time*8.0)*0.6, 0.9);
+        let brushPos = vec3f(0., sin(u_CameraTimeParameters.time*8.0)*0.6, 0.9);
         let brushSize = 0.9;
         let brushMult = -0.3*10.;
 

@@ -19,8 +19,8 @@ struct Parameters {
 @group(0) @binding(4) var<uniform> u_Parameters : Parameters;
 
 fn rayBoxIntersect(ro : vec3f, ird : vec3f) -> vec2f {
-	let lb = vec3f(-.5);
-	let rt = vec3f(.5);
+	let lb = vec3f(0.0);
+	let rt = vec3f(1.0);
 
 	let t1 = (lb.x - ro.x) * ird.x;
 	let t2 = (rt.x - ro.x) * ird.x;
@@ -47,7 +47,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let lro = (u_Parameters.bbxInvTRS * vec4f(ro, 1.0)).xyz;
         let lrd = (u_Parameters.bbxInvTRS * vec4f(rd, 0.0)).xyz;
 
-        let ts = rayBoxIntersect(lro, lrd);
+        let ts = rayBoxIntersect(lro, 1.0/lrd);
         if(ts.x < ts.y) {
             let hitT = max(ts.x, 0.0); // For the inside box we'll start marching at ro
             var currT = hitT+0.001;
@@ -61,6 +61,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             intersectionBuffer[0] = vec4f(hitPos, 1.0);
             intersectionBuffer[1] = vec4f(norm, 0.0);
         } else {
+            intersectionBuffer[0] = vec4f(0.0,0.0,0.0,0.0);
             intersectionBuffer[1] = vec4f(0.0,0.0,0.0,0.0);
         }
     }
