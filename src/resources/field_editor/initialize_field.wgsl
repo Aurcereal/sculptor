@@ -3,7 +3,10 @@
 struct Parameters {
     texRes : u32,
     marchingCubesRes : u32,
-    marchingCubesThreshold : f32
+    marchingCubesThreshold : f32,
+    bbxTRS : mat4x4f,
+    bbxInvTRS : mat4x4f,
+    bbxInverseTranspose : mat4x4f
 };
 @group(0) @binding(1) var<uniform> u_Parameters : Parameters;
 

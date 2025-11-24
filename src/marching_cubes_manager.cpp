@@ -1,16 +1,24 @@
 #include "marching_cubes_manager.h"
 
 MarchingCubes::Manager::Manager(const Device* d, const Queue* q, InputManager *im, TextureFormat screenFormat) : 
-    device(*d), queue(*q), inputManager(im), camera(), uniformManager(this), raycaster(this), fieldEditor(this), meshGenerator(this), drawer(this) 
+    device(*d), queue(*q), inputManager(im), camera(), uniformManager(this), raycaster(this), fieldEditor(this), meshGenerator(this), drawer(this),
+    boundingBoxScale(4.0f)
 {
+    mat4x4 bbxTRS = glm::rotate(mat4(1.0f), 0.4f, vec3(1,0,0)) * glm::scale(mat4(1.0f), vec3(boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
+    mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
+    mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/boundingBoxScale)) * glm::rotate(mat4(1.0f), -0.4f, vec3(1,0,0));
+    parameters = {256, 32, 0.5f, -1.0f, bbxTRS, bbxInvTRS, bbxInverseTranspose};
+
     inputManager->AddOnMouseClickListener(std::bind(&MarchingCubes::Manager::OnMouseClick, this, std::placeholders::_1));
     inputManager->AddOnMouseMoveListener(std::bind(&MarchingCubes::Manager::OnMouseMove, this, std::placeholders::_1));
 
-    uniformManager.Initialize(256, 16, camera);
-
+    raycaster.Initialize();
+    uniformManager.Initialize(parameters, camera);
     fieldEditor.Initialize();
     meshGenerator.Initialize();
     drawer.Initialize(screenFormat); 
+
+    raycaster.InitializeWithDependencies();
 
     fieldEditor.GenerateField();
     meshGenerator.GenerateMesh();

@@ -35,7 +35,8 @@ set(SOURCE_FILES
 	mesh_generator.cpp
 	drawer.cpp
 	uniform_manager.cpp
-	input_manager.cpp)
+	input_manager.cpp
+	raycaster.cpp)
 
 add_executable(App ${SOURCE_FILES})
 

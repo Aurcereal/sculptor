@@ -8,7 +8,10 @@
 struct Parameters {
     texRes : u32,
     marchingCubesRes : u32,
-    marchingCubesThreshold : f32
+    marchingCubesThreshold : f32,
+    bbxTRS : mat4x4f,
+    bbxInvTRS : mat4x4f,
+    bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow
 };
 @group(0) @binding(5) var<uniform> u_MarchingCubesParameters : Parameters;
 
@@ -332,12 +335,15 @@ fn edgeToPosB(e: i32) -> vec3f {
     return cubePointsArray[vertIndex];
 }
 
-fn uvToWorldSpace(uv: vec3f) -> vec3f {
-    return 2.*(uv-vec3f(0.5)); // TODO: make a uniform transform mat
+fn uvToWorldSpacePos(uv: vec3f) -> vec3f {
+    return (u_MarchingCubesParameters.bbxTRS * vec4f(uv, 1.0)).xyz;
+}
+fn uvToWorldSpaceNorm(nor: vec3f) -> vec3f {
+    return normalize((u_MarchingCubesParameters.bbxInverseTranspose * vec4f(nor, 0.0)).xyz); // mat3x3f(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0)
 }
 
 @compute 
-@workgroup_size(4, 4, 4) // TODO: make 3D
+@workgroup_size(4, 4, 4) 
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let resolution = u_MarchingCubesParameters.marchingCubesRes;
     let threshold = u_MarchingCubesParameters.marchingCubesThreshold;
@@ -379,21 +385,21 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let edge2 = cubeConfigToEdgeCuts[startIndex+i + 1];
         let edge3 = cubeConfigToEdgeCuts[startIndex+i + 2];
 
-        let edge1Point: vec3f = verticesOnEdges[edge1];//0.5 * (edgeToPosA(edge1) + edgeToPosB(edge1)); // For now, just midpoint
-        let edge2Point: vec3f = verticesOnEdges[edge2];//0.5 * (edgeToPosA(edge2) + edgeToPosB(edge2));
-        let edge3Point: vec3f = verticesOnEdges[edge3];//0.5 * (edgeToPosA(edge3) + edgeToPosB(edge3));
+        let edge1Point: vec3f = verticesOnEdges[edge1];
+        let edge2Point: vec3f = verticesOnEdges[edge2];
+        let edge3Point: vec3f = verticesOnEdges[edge3];
 
         let uvEdge1Point = uv + edge1Point*cubeSize;
         let uvEdge2Point = uv + edge2Point*cubeSize;
         let uvEdge3Point = uv + edge3Point*cubeSize;
 
-        let worldEdge1Point = uvToWorldSpace(uvEdge1Point);
-        let worldEdge2Point = uvToWorldSpace(uvEdge2Point);
-        let worldEdge3Point = uvToWorldSpace(uvEdge3Point);
+        let worldEdge1Point = uvToWorldSpacePos(uvEdge1Point);
+        let worldEdge2Point = uvToWorldSpacePos(uvEdge2Point);
+        let worldEdge3Point = uvToWorldSpacePos(uvEdge3Point);
 
         let p12 = worldEdge2Point-worldEdge1Point;
         let p13 = worldEdge3Point-worldEdge1Point;
-        let norm = normalize(cross(p13, p12));
+        let norm = uvToWorldSpaceNorm(cross(p13, p12));
 
         AddVerticesAndTriangle(worldEdge1Point, worldEdge2Point, worldEdge3Point, norm);
     }

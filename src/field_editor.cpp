@@ -5,8 +5,8 @@ using namespace std;
 namespace SP = ShaderParameter;
 
 void MarchingCubes::FieldEditor::Initialize() {
-    fieldTexture.Initialize(manager->device, uvec3(manager->uniformManager.parameters.textureResolution), TextureFormat::R32Float, true, true);
-    fieldScratchTexture.Initialize(manager->device, uvec3(manager->uniformManager.parameters.textureResolution), TextureFormat::R32Float, true, true);
+    fieldTexture.Initialize(manager->device, uvec3(manager->parameters.textureResolution), TextureFormat::R32Float, true, true);
+    fieldScratchTexture.Initialize(manager->device, uvec3(manager->parameters.textureResolution), TextureFormat::R32Float, true, true);
 
     //
     vector<ShaderParameter::Parameter> params = {
@@ -27,7 +27,8 @@ void MarchingCubes::FieldEditor::Initialize() {
         SP::Parameter(SP::UTexture{&fieldTexture, true, false}),
         SP::Parameter(SP::UTexture{&fieldScratchTexture, true, true}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer}),
-        SP::Parameter(SP::UUniform{&manager->uniformManager.cameraTimeUniformBuffer})
+        SP::Parameter(SP::UBuffer{&manager->raycaster.intersectionBuffer, true}),
+        SP::Parameter(SP::UUniform{&manager->uniformManager.cameraTimeUniformBuffer}),
     };
     fieldDrawUpdater.Initialize(manager->device, drawUpdateParams, "./field_editor/field_update_draw.wgsl");
 
@@ -35,16 +36,16 @@ void MarchingCubes::FieldEditor::Initialize() {
 }
 
 void MarchingCubes::FieldEditor::GenerateField() {
-    fieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->uniformManager.parameters.textureResolution));
+    fieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.textureResolution));
 }
 
 void MarchingCubes::FieldEditor::UpdateField() {
-    fieldDrawUpdater.DispatchSync(manager->device, manager->queue, uvec3(manager->uniformManager.parameters.textureResolution));
+    fieldDrawUpdater.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.textureResolution));
     CopyScratchToField();
 }
 
 void MarchingCubes::FieldEditor::CopyScratchToField() {
-    copybackShader.DispatchSync(manager->device, manager->queue, uvec3(manager->uniformManager.parameters.textureResolution));
+    copybackShader.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.textureResolution));
 }
 
 void MarchingCubes::FieldEditor::Destroy() {

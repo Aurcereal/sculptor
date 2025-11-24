@@ -32,6 +32,7 @@ void ComputeShader::InitBindGroupLayout(Device &device, const vector<ShaderParam
                 ShaderParameter::UBuffer bufferParam = shaderParams[i].buffer;
                 bindings[i].buffer.type = 
                     bufferParam.forWriting ? BufferBindingType::Storage : BufferBindingType::ReadOnlyStorage;
+                // bindings[i].buffer.minBindingSize = bufferParam.bufferHolder->size;
                 break;
         }
     }

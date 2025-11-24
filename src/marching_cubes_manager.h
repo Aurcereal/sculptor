@@ -26,10 +26,12 @@ namespace MarchingCubes {
         uint32_t marchingCubesResolution;
         float marchingCubesThreshold;
         float _pad0[1];
+        mat4x4 boundingBoxTRS;
+        mat4x4 boundingBoxInverseTRS;
+        mat4x4 boundingBoxInverseTranspose;
     };
 
     struct BrushParameters {
-        mat4x4 brushInverseTR;
         uint32 brushType;
         float brushMult;
         float brushSize;
@@ -44,15 +46,22 @@ namespace MarchingCubes {
         float _pad[3];
     };
 
+    struct RaycastInputUniform {
+        vec3 origin;
+        float _pad0;
+        vec3 direction;
+        float _pad1;
+        inline RaycastInputUniform(vec3 o, vec3 d) : origin(o), direction(d) {}
+    };
+
     class UniformManager {
     public:
         inline UniformManager(Manager *m) : manager(m) {}
 
-        void Initialize(uint32 textureResolution, uint32 marchingCubesResolution, const Camera&);
+        void Initialize(const Parameters&, const Camera&);
         
-        void UpdateResolutions(const uint32 *newTexResolution, const uint32 *newMarchingCubesResolution);
+        void UpdateParameters(const Parameters&);
 
-        void UpdateBrushTransform(const mat4x4&);
         void UpdateBrushMult(float);
         void UpdateBrushSize(float);
         void UpdateBrushType(uint32);
@@ -62,13 +71,15 @@ namespace MarchingCubes {
         void UpdateModelMatrix(const mat4x4&);
         void UpdateTime();
 
+        void SetRaycastInput(vec3 origin, vec3 direction);
+
         void Destroy();
 
         BufferHolder parameterBuffer;
         BufferHolder brushParameterBuffer;
         BufferHolder cameraTimeUniformBuffer;
+        BufferHolder raycastInputUniformBuffer;
 
-        Parameters parameters;
         BrushParameters brushParameters;
         CameraTimeUniform cameraTimeParameters;
     private:
@@ -77,18 +88,21 @@ namespace MarchingCubes {
     };
 
     class Raycaster {
-        struct Intersection {
-            vec3 pos;
-            vec3 norm;
-        };
-
     public:
         inline Raycaster(Manager *m) : manager(m) {}
 
-        Intersection RayFieldIntersect(vec3 origin, vec3 direction);  
-    
+        void Initialize();
+        void InitializeWithDependencies();
+
+        void RayFieldIntersect(vec3 origin, vec3 direction);  
+        BufferHolder intersectionBuffer;
+
+        void ResetIntersectionBuffer();
+
     private:
         Manager *manager;
+
+        ComputeShader computeIntersection;
     };
 
     class FieldEditor {
@@ -133,8 +147,8 @@ namespace MarchingCubes {
 
         ComputeShader meshGenerationShader;
 
-        const uint32_t maxVertexCount = 262144;
-        const uint32_t maxTriangleCount = 262144;
+        const uint32_t maxVertexCount = 4194304;
+        const uint32_t maxTriangleCount = 2097152;
 
         void ResetCountBuffer();
     };
@@ -173,6 +187,8 @@ namespace MarchingCubes {
 
         Camera camera;
 
+        Parameters parameters;
+
         void MainLoop();
         void OnMouseClick(vec2);
         void OnMouseMove(vec2);
@@ -181,7 +197,7 @@ namespace MarchingCubes {
 
         private:
 
-        ComputeShader meshGeneratorShader;
+        float boundingBoxScale;
         
     };
 
