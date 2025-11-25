@@ -172,6 +172,14 @@ WGPUDevice requestDeviceSync(WGPUAdapter adapter, WGPUDeviceDescriptor const* de
 }
 
 bool Application::Initialize() {
+#ifdef WEBGPU_BACKEND_DAWN
+    std::cout << "Using Dawn" << std::endl;
+#elif defined(WEBGPU_BACKEND_EMSCRIPTEN)
+    std::cout << "Using Emscripten" << std::endl;
+#elif defined(WEBGPU_BACKEND_WGPU)
+    std::cout << "Using Native WGPU" << std::endl;
+#endif
+
     // Get instance
     WGPUInstanceDescriptor desc = {};
     desc.nextInChain = nullptr;

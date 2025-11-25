@@ -19,6 +19,7 @@ endif()
 # Include directories to define targets
 add_subdirectory(webgpu)
 add_subdirectory(glfw3webgpu)
+add_subdirectory(imgui)
 
 set(SOURCE_FILES
 	main.cpp
@@ -53,7 +54,7 @@ endif()
 
 target_include_directories(App PRIVATE .)
 
-target_link_libraries(App PRIVATE webgpu glfw glfw3webgpu)
+target_link_libraries(App PRIVATE webgpu glfw glfw3webgpu imgui)
 
 # Make sure that the .dll file our binary depends on at runtime is copied next to the binary.  Unnecessary for Dawn
 target_copy_webgpu_binaries(App)
