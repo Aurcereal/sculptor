@@ -21,7 +21,7 @@ void MarchingCubes::Drawer::Initialize(TextureFormat surfaceFormat) {
     vector<SP::Parameter> shaderParams = {
       SP::Parameter(SP::UUniform{&manager->uniformManager.cameraTimeUniformBuffer})
     };
-    drawShader.Initialize(manager->device, shaderParams, surfaceFormat, depthTextureHolder, "./drawing/flat_lambert.wgsl");
+    drawShader.Initialize(manager->device, shaderParams, surfaceFormat, depthTextureHolder, "./drawing/display_normal.wgsl");
 
     // Initialize Indirect Args
     std::array<uint32_t, 5> indirectArgs = {
