@@ -17,8 +17,9 @@ void GUIManager::DrawAndUpdateGUI(RenderPassEncoder renderPass) {
     ImGui::NewFrame();
 
     //
-    ImGui::Begin("TEST WINDOW");
-    ImGui::End();
+    for(auto& f : buildUIFunctions) {
+        f();
+    }
 
     ImGui::EndFrame();
     ImGui::Render();

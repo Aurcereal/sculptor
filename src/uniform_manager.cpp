@@ -1,9 +1,7 @@
 #include "marching_cubes_manager.h"
 
-void MarchingCubes::UniformManager::Initialize(const Parameters& parameters, const Camera& cam) {
-    // Initialize structs
-    brushParameters = {0, 1.0f, 1.0f};
-    cameraTimeParameters = {cam.GetProjectionMatrix(), cam.GetViewMatrix(), mat4(1.0f), 0.0f};
+void MarchingCubes::UniformManager::Initialize() {
+    assert(manager->guiToParams.initialized);
 
     // Initialize Buffers
     parameterBuffer = createBuffer(manager->device, sizeof(Parameters), 
@@ -16,36 +14,38 @@ void MarchingCubes::UniformManager::Initialize(const Parameters& parameters, con
         BufferUsage::CopyDst | BufferUsage::Uniform, false);
     
     // Send Initial Data
-    UpdateParameters(parameters);
-    manager->queue.writeBuffer(brushParameterBuffer.buffer, 0, &brushParameters, sizeof(BrushParameters));
-    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, 0, &cameraTimeParameters, sizeof(CameraTimeUniform));
+    UpdateParameters();
+    UpdateBrushParameters();
+    UpdateCameraTimeParameters();
 
     std::cout << "Initalized Uniform Manager" << std::endl;
+    initialized = true;
 }
 
-void MarchingCubes::UniformManager::UpdateParameters(const Parameters& parameters) {
-    manager->queue.writeBuffer(parameterBuffer.buffer, 0, &parameters, sizeof(Parameters));
+void MarchingCubes::UniformManager::UpdateParameters() {
+    manager->queue.writeBuffer(parameterBuffer.buffer, 0, &manager->guiToParams.parameters, sizeof(Parameters));
 }
-
+void MarchingCubes::UniformManager::UpdateBrushParameters() {
+    manager->queue.writeBuffer(brushParameterBuffer.buffer, 0, &manager->guiToParams.brushParameters, sizeof(BrushParameters));
+}
+void MarchingCubes::UniformManager::UpdateCameraTimeParameters() {
+    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, 0, &manager->guiToParams.cameraTimeParameters, sizeof(CameraTimeUniform));
+}
 // void MarchingCubes::UniformManager::UpdateBrushMult(float);
 // void MarchingCubes::UniformManager::UpdateBrushSize(float);
 // void MarchingCubes::UniformManager::UpdateBrushType(uint32);
 
-void MarchingCubes::UniformManager::UpdateViewMatrix(const Camera& cam) {
-    cameraTimeParameters.viewMatrix = cam.GetViewMatrix();
-    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, viewMatrix), &cameraTimeParameters.viewMatrix, sizeof(mat4x4));
+void MarchingCubes::UniformManager::UpdateViewMatrix() {
+    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, viewMatrix), &manager->guiToParams.cameraTimeParameters.viewMatrix, sizeof(mat4x4));
 }
-void MarchingCubes::UniformManager::UpdateProjectionMatrix(const Camera& cam) {
-    cameraTimeParameters.projectionMatrix = cam.GetProjectionMatrix();
-    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, projectionMatrix), &cameraTimeParameters.projectionMatrix, sizeof(mat4x4));
+void MarchingCubes::UniformManager::UpdateProjectionMatrix() {
+    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, projectionMatrix), &manager->guiToParams.cameraTimeParameters.projectionMatrix, sizeof(mat4x4));
 }
-void MarchingCubes::UniformManager::UpdateModelMatrix(const mat4x4& mat) {
-    cameraTimeParameters.modelMatrix = mat;
-    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, modelMatrix), &cameraTimeParameters.modelMatrix, sizeof(mat4x4));
+void MarchingCubes::UniformManager::UpdateModelMatrix() {
+    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, modelMatrix), &manager->guiToParams.cameraTimeParameters.modelMatrix, sizeof(mat4x4));
 }
 void MarchingCubes::UniformManager::UpdateTime() {
-    cameraTimeParameters.time = static_cast<float>(glfwGetTime());
-    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, time), &cameraTimeParameters.time, sizeof(float));
+    manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, time), &manager->guiToParams.cameraTimeParameters.time, sizeof(float));
 }
 
 void MarchingCubes::UniformManager::SetRaycastInput(vec3 origin, vec3 direction) {

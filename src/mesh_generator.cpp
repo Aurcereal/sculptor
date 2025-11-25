@@ -3,6 +3,8 @@
 namespace SP = ShaderParameter;
 
 void MarchingCubes::MeshGenerator::Initialize() {
+    assert(manager->guiToParams.initialized);
+
     // Initialize Buffers
     vertexBuffer = createBuffer(manager->device, sizeof(float)*6*maxVertexCount, // Vertex Size = 6 (Make Parameter) 
         BufferUsage::Vertex | BufferUsage::Storage, false);
@@ -24,6 +26,7 @@ void MarchingCubes::MeshGenerator::Initialize() {
     meshGenerationShader.Initialize(manager->device, shaderParams, "/mesh_generator/generate_mesh.wgsl");
     
     std::cout << "Initialized Mesh Generator" << std::endl;
+    initialized = true;
 }
 
 void MarchingCubes::MeshGenerator::ResetCountBuffer() {
@@ -33,7 +36,7 @@ void MarchingCubes::MeshGenerator::ResetCountBuffer() {
 
 void MarchingCubes::MeshGenerator::GenerateMesh() {
     ResetCountBuffer();
-    meshGenerationShader.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.marchingCubesResolution));
+    meshGenerationShader.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.marchingCubesResolution));
 }
 
 void MarchingCubes::MeshGenerator::Destroy() {

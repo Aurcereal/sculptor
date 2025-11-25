@@ -13,6 +13,7 @@
 #include "shader.h"
 #include "camera.h"
 #include "input_manager.h"
+#include "gui_manager.h"
 
 using namespace glm;
 
@@ -58,17 +59,22 @@ namespace MarchingCubes {
     public:
         inline UniformManager(Manager *m) : manager(m) {}
 
-        void Initialize(const Parameters&, const Camera&);
+        void Initialize();
+        bool initialized = false;
         
-        void UpdateParameters(const Parameters&);
+        // Update Everything
+        void UpdateParameters();
+        void UpdateBrushParameters();
+        void UpdateCameraTimeParameters();
 
+        // Update certain parts of the struct
         void UpdateBrushMult(float);
         void UpdateBrushSize(float);
         void UpdateBrushType(uint32);
 
-        void UpdateViewMatrix(const Camera&);
-        void UpdateProjectionMatrix(const Camera&);
-        void UpdateModelMatrix(const mat4x4&);
+        void UpdateViewMatrix();
+        void UpdateProjectionMatrix();
+        void UpdateModelMatrix();
         void UpdateTime();
 
         void SetRaycastInput(vec3 origin, vec3 direction);
@@ -79,12 +85,31 @@ namespace MarchingCubes {
         BufferHolder brushParameterBuffer;
         BufferHolder cameraTimeUniformBuffer;
         BufferHolder raycastInputUniformBuffer;
+    private:
+        Manager *manager;
+        
+    };
 
+    class GUIToParams {
+    public:
+        inline GUIToParams(Manager *m) : manager(m) {}
+
+        void Initialize(GUIManager*);
+        bool initialized = false;
+
+        void UpdateCameraParameters();
+
+        Parameters parameters;
         BrushParameters brushParameters;
         CameraTimeUniform cameraTimeParameters;
     private:
         Manager *manager;
-        
+
+        int selectedBrush = 0;
+        int selectedOperation = -1;
+        int selectedShading = 0;
+
+        void MainLoop();
     };
 
     class Raycaster {
@@ -92,6 +117,8 @@ namespace MarchingCubes {
         inline Raycaster(Manager *m) : manager(m) {}
 
         void Initialize();
+        bool initialized = false;
+
         void InitializeWithDependencies();
 
         void RayFieldIntersect(vec3 origin, vec3 direction);  
@@ -110,6 +137,8 @@ namespace MarchingCubes {
         inline FieldEditor(Manager *m) : manager(m) {}
 
         void Initialize();
+        bool initialized = false;
+
         void GenerateField();
         void UpdateField();
 
@@ -134,6 +163,8 @@ namespace MarchingCubes {
         inline MeshGenerator(Manager *m) : manager(m) {}
 
         void Initialize();
+        bool initialized = false;
+
         void GenerateMesh();
 
         void Destroy();
@@ -158,6 +189,8 @@ namespace MarchingCubes {
         inline Drawer(Manager *m) : manager(m) {}
 
         void Initialize(TextureFormat);
+        bool initialized = false;
+
         void UpdateIndexCount();
         
         void Destroy();
@@ -188,11 +221,12 @@ namespace MarchingCubes {
 
     class Manager {
     public:
-        Manager(const Device*, const Queue*, InputManager*, TextureFormat screenFormat);
+        Manager(const Device*, const Queue*, InputManager*, TextureFormat screenFormat, GUIManager*);
         Device device;
         Queue queue;
         InputManager *inputManager;
         
+        GUIToParams guiToParams;
         InputHandler inputHandler;
         UniformManager uniformManager;
         Raycaster raycaster;
@@ -202,15 +236,13 @@ namespace MarchingCubes {
 
         Camera camera;
 
-        Parameters parameters;
+        float boundingBoxScale;
 
         void MainLoop();
 
         void Destroy();
 
     private:
-
-        float boundingBoxScale;
         
     };
 

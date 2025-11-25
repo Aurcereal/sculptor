@@ -315,9 +315,10 @@ bool Application::Initialize() {
     wgpuSurfaceConfigure(surface, &config);
 
     wgpuAdapterRelease(adapter);
-    marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, &inputManager, surfaceFormat);
 
+    //
     guiManager.Initialize(device, window, surfaceFormat);
+    marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, &inputManager, surfaceFormat, &guiManager);
 
     return true;
 }

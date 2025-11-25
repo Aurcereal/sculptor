@@ -12,6 +12,8 @@ struct DrawUniforms {
 namespace SP = ShaderParameter;
 
 void MarchingCubes::Drawer::Initialize(TextureFormat surfaceFormat) {
+    assert(manager->meshGenerator.initialized && manager->uniformManager.initialized);
+
     // Initialize Depth Texture
     depthTextureHolder.Initialize(manager->device);
 
@@ -41,6 +43,7 @@ void MarchingCubes::Drawer::Initialize(TextureFormat surfaceFormat) {
     fillIndexCountShader.Initialize(manager->device, argsFillerShaderParams, "./drawing/fill_index_count.wgsl");
 
     std::cout << "Initialized Drawer" << std::endl;
+    initialized = true;
 }
 
 void MarchingCubes::Drawer::UpdateIndexCount() {

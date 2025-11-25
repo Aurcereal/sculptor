@@ -5,8 +5,10 @@ using namespace std;
 namespace SP = ShaderParameter;
 
 void MarchingCubes::FieldEditor::Initialize() {
-    fieldTexture.Initialize(manager->device, uvec3(manager->parameters.textureResolution), TextureFormat::R32Float, true, true);
-    fieldScratchTexture.Initialize(manager->device, uvec3(manager->parameters.textureResolution), TextureFormat::R32Float, true, true);
+    assert(manager->guiToParams.initialized && manager->uniformManager.initialized && manager->raycaster.initialized);
+
+    fieldTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::R32Float, true, true);
+    fieldScratchTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::R32Float, true, true);
 
     //
     vector<ShaderParameter::Parameter> params = {
@@ -33,19 +35,20 @@ void MarchingCubes::FieldEditor::Initialize() {
     fieldDrawUpdater.Initialize(manager->device, drawUpdateParams, "./field_editor/field_update_draw.wgsl");
 
     std::cout << "Initialized Field Editor" << std::endl;
+    initialized = true;
 }
 
 void MarchingCubes::FieldEditor::GenerateField() {
-    fieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.textureResolution));
+    fieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
 }
 
 void MarchingCubes::FieldEditor::UpdateField() {
-    fieldDrawUpdater.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.textureResolution));
+    fieldDrawUpdater.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
     CopyScratchToField();
 }
 
 void MarchingCubes::FieldEditor::CopyScratchToField() {
-    copybackShader.DispatchSync(manager->device, manager->queue, uvec3(manager->parameters.textureResolution));
+    copybackShader.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
 }
 
 void MarchingCubes::FieldEditor::Destroy() {

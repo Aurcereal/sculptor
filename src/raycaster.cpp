@@ -8,6 +8,8 @@ void MarchingCubes::Raycaster::Initialize() {
     intersectionBuffer = createBuffer(manager->device, sizeof(vec4)*2,
         BufferUsage::Storage | BufferUsage::CopyDst, false);
     ResetIntersectionBuffer();
+
+    initialized = true;
 }
 
 void MarchingCubes::Raycaster::ResetIntersectionBuffer() {
@@ -16,6 +18,8 @@ void MarchingCubes::Raycaster::ResetIntersectionBuffer() {
 }
 
 void MarchingCubes::Raycaster::InitializeWithDependencies() {
+    assert(manager->fieldEditor.initialized && manager->uniformManager.initialized);
+
     vector<SP::Parameter> params = {
         SP::Parameter(SP::UTexture{&manager->fieldEditor.fieldTexture, true, false}),
         SP::Parameter(SP::USampler{&manager->fieldEditor.fieldTexture}),
