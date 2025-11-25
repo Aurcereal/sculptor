@@ -1,4 +1,5 @@
 #include "input_manager.h"
+#include <iostream>
 
 void InputManager::AddOnMouseMoveListener(const std::function<void(vec2, vec2)> &f) {
     onMouseMoveListeners.push_back(f);
@@ -18,14 +19,18 @@ void InputManager::OnMouseMove(vec2 newPos) {
 }
 
 void InputManager::OnMouseClick(bool leftMouse, bool pressDown) {
-    if(!leftMouse) return; // For now
-    if(pressDown) {
-        for(auto &f : onMouseClickListeners) {
-            f(mousePosition);
+    if(leftMouse) {
+        lMouseDown = pressDown;
+        if(pressDown) {
+            for(auto &f : onMouseClickListeners) {
+                f(mousePosition);
+            }
+        } else {
+            for(auto &f : onMouseReleaseListeners) {
+                f(mousePosition);
+            }
         }
     } else {
-        for(auto &f : onMouseReleaseListeners) {
-            f(mousePosition);
-        }
+        rMouseDown = pressDown;
     }
 }

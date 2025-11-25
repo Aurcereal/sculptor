@@ -17,6 +17,8 @@ public:
     void AddOnMouseReleaseListener(const std::function<void(vec2)>&);
 
     vec2 mousePosition;
+    bool lMouseDown = false;
+    bool rMouseDown = false;
 
 private:
     vector<std::function<void(vec2, vec2)>> onMouseMoveListeners;

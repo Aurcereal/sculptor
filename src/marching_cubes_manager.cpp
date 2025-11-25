@@ -1,7 +1,7 @@
 #include "marching_cubes_manager.h"
 
 MarchingCubes::Manager::Manager(const Device* d, const Queue* q, InputManager *im, TextureFormat screenFormat) : 
-    device(*d), queue(*q), inputManager(im), camera(), inputHandler(this), uniformManager(this), raycaster(this), fieldEditor(this), meshGenerator(this), drawer(this),
+    device(*d), queue(*q), inputManager(im), camera(im), inputHandler(this), uniformManager(this), raycaster(this), fieldEditor(this), meshGenerator(this), drawer(this),
     boundingBoxScale(4.0f)
 {
     inputManager->AddOnMouseClickListener(std::bind(&MarchingCubes::InputHandler::OnLMouseClick, &inputHandler, std::placeholders::_1));
