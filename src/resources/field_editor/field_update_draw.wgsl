@@ -32,7 +32,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         // TODO: uniform
         let brushPos = pos.xyz;
         let brushSize = 0.9;
-        let brushMult = -0.2;
+        let brushMult = -0.05;
 
         //
         let diff = p - brushPos;

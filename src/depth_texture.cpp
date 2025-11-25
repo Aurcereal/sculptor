@@ -15,7 +15,7 @@ void DepthTexture::Initialize(Device &device) {
     depthTextureDesc.format = depthTextureFormat;
     depthTextureDesc.mipLevelCount = 1;
     depthTextureDesc.sampleCount = 1;
-    depthTextureDesc.size = {640, 480, 1}; // TODO: parametrize for resizing
+    depthTextureDesc.size = {1280, 720, 1}; // TODO: parametrize for resizing
     depthTextureDesc.usage = TextureUsage::RenderAttachment;
     depthTextureDesc.viewFormatCount = 1;
     depthTextureDesc.viewFormats = (WGPUTextureFormat*) &depthTextureFormat;

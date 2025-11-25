@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
 	// Init GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	GLFWwindow* window = glfwCreateWindow(640, 480, "Learn WebGPU", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(1280, 720, "Learn WebGPU", NULL, NULL);
 
 	// Here we create our WebGPU surface from the window!
 	WGPUSurface surface = glfwGetWGPUSurface(instance, window);

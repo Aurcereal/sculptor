@@ -217,10 +217,10 @@ bool Application::Initialize() {
         return false;
     }
 
-    resolution = uvec2(640, 480); // TODO: use this in code base and make it resizeable
+    resolution = uvec2(1280, 720); // TODO: use this in code base and make it resizeable
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // Tell GLFW not to think about API since it wouldn't know WebGPU anyways
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE); // Disallow resizing since it causes crash for now
-    window = glfwCreateWindow(resolution.x, resolution.y, "Learn WebGPU!!", nullptr, nullptr);
+    window = glfwCreateWindow(resolution.x, resolution.y, "Sculptor", nullptr, nullptr);
     if(!window) {
         std::cerr << "Couldn't open GLFW window!!" << std::endl;
         glfwTerminate();
