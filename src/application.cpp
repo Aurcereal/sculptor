@@ -317,11 +317,15 @@ bool Application::Initialize() {
     wgpuAdapterRelease(adapter);
     marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, &inputManager, surfaceFormat);
 
+    guiManager.Initialize(device, window, surfaceFormat);
+
     return true;
 }
 
 void Application::Terminate() {
     marchingCubesManager->Destroy();
+
+    guiManager.Terminate();
 
     wgpuSurfaceUnconfigure(surface);
     wgpuSurfaceRelease(surface);
@@ -391,15 +395,20 @@ void Application::MainLoop() {
     depthStencilAttachment.stencilReadOnly = true;
     renderPassDesc.depthStencilAttachment = &depthStencilAttachment;
 
+    // START Render Pass
     RenderPassEncoder renderPass = encoder.beginRenderPass(renderPassDesc);
 
-    // What to draw here
+    // Mesh Drawing
     renderPass.setPipeline(marchingCubesManager->drawer.drawShader.pipeline);
     renderPass.setVertexBuffer(0, marchingCubesManager->meshGenerator.vertexBuffer.buffer, 0, marchingCubesManager->meshGenerator.vertexBuffer.size); // Could have CPU side vertex size? IDK if that would even help
     renderPass.setIndexBuffer(marchingCubesManager->meshGenerator.indexBuffer.buffer, IndexFormat::Uint32, 0, marchingCubesManager->meshGenerator.indexBuffer.size);
     renderPass.setBindGroup(0, marchingCubesManager->drawer.drawShader.bindGroup, 0, nullptr);
     renderPass.drawIndexedIndirect(marchingCubesManager->drawer.indirectDrawArgs.buffer, 0);
 
+    // UI Drawing
+    guiManager.DrawAndUpdateGUI(renderPass);
+
+    // END Render Pass
     renderPass.end();
     renderPass.release();
 

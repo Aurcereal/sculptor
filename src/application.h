@@ -19,6 +19,7 @@
 #include "marching_cubes_manager.h"
 #include "uPtr_macros.h"
 #include "input_manager.h"
+#include "gui_manager.h"
 
 using namespace wgpu;
 using namespace glm;
@@ -60,4 +61,5 @@ class Application {
     //
     uPtr<MarchingCubes::Manager> marchingCubesManager;
     InputManager inputManager;
+    GUIManager guiManager;
 };
