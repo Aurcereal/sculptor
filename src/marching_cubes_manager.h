@@ -26,7 +26,7 @@ namespace MarchingCubes {
         uint32_t textureResolution;
         uint32_t marchingCubesResolution;
         float marchingCubesThreshold;
-        float _pad0[1];
+        uint32_t flatShading;
         mat4x4 boundingBoxTRS;
         mat4x4 boundingBoxInverseTRS;
         mat4x4 boundingBoxInverseTranspose;
@@ -68,9 +68,9 @@ namespace MarchingCubes {
         void UpdateCameraTimeParameters();
 
         // Update certain parts of the struct
-        void UpdateBrushMult(float);
-        void UpdateBrushSize(float);
-        void UpdateBrushType(uint32);
+        void UpdateBrushMult();
+        void UpdateBrushSize();
+        void UpdateBrushType();
 
         void UpdateViewMatrix();
         void UpdateProjectionMatrix();
@@ -107,7 +107,6 @@ namespace MarchingCubes {
 
         int selectedBrush = 0;
         int selectedOperation = -1;
-        int selectedShading = 0;
 
         void MainLoop();
     };

@@ -12,6 +12,7 @@ struct Parameters {
     texRes : u32,
     marchingCubesRes : u32,
     marchingCubesThreshold : f32,
+    flatShading : u32,
     bbxTRS : mat4x4f,
     bbxInvTRS : mat4x4f,
     bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow

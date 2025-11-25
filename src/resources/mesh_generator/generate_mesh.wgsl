@@ -9,6 +9,7 @@ struct Parameters {
     texRes : u32,
     marchingCubesRes : u32,
     marchingCubesThreshold : f32,
+    flatShading : u32,
     bbxTRS : mat4x4f,
     bbxInvTRS : mat4x4f,
     bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow
@@ -290,11 +291,11 @@ fn AddTriangle(bufferIndex: u32, v1: u32, v2: u32, v3: u32) {
     outputIndices[bufferIndex + 2] = v3;
 }
 
-fn AddVerticesAndTriangle(v1: vec3f, v2: vec3f, v3: vec3f, norm: vec3f) {
+fn AddVerticesAndTriangle(v1: vec3f, v2: vec3f, v3: vec3f, n1: vec3f, n2: vec3f, n3: vec3f) {
     let bufferVertIndex = atomicAdd(&countBuffers[0], 3*VERTEX_SIZE);
-    AddVertex(bufferVertIndex + 0u*VERTEX_SIZE, v1, norm);
-    AddVertex(bufferVertIndex + 1u*VERTEX_SIZE, v2, norm);
-    AddVertex(bufferVertIndex + 2u*VERTEX_SIZE, v3, norm);
+    AddVertex(bufferVertIndex + 0u*VERTEX_SIZE, v1, n1);
+    AddVertex(bufferVertIndex + 1u*VERTEX_SIZE, v2, n2);
+    AddVertex(bufferVertIndex + 2u*VERTEX_SIZE, v3, n3);
 
     let bufferTriIndex = atomicAdd(&countBuffers[1], 3u);
     let firstVert = bufferVertIndex/VERTEX_SIZE;
@@ -342,11 +343,22 @@ fn uvToWorldSpaceNorm(nor: vec3f) -> vec3f {
     return normalize((u_MarchingCubesParameters.bbxInverseTranspose * vec4f(nor, 0.0)).xyz); // mat3x3f(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0)
 }
 
+fn sampleNormal(pos: vec3f) -> vec3f {
+    // -Gradient since our inside is positive
+    let eps = vec2f(0.001, 0.0);
+    return -normalize(vec3f(
+        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.xyy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.xyy, 0.0).r,
+        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.yxy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.yxy, 0.0).r,
+        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.yyx, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.yyx, 0.0).r
+    ));
+}
+
 @compute 
 @workgroup_size(4, 4, 4) 
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let resolution = u_MarchingCubesParameters.marchingCubesRes;
     let threshold = u_MarchingCubesParameters.marchingCubesThreshold;
+    let flatShading = bool(u_MarchingCubesParameters.flatShading);
 
     let cubeSize = 1.0/f32(resolution);
     let uv = (vec3f(id)+vec3f(0.5))*cubeSize;
@@ -399,9 +411,18 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 
         let p12 = worldEdge2Point-worldEdge1Point;
         let p13 = worldEdge3Point-worldEdge1Point;
-        let norm = uvToWorldSpaceNorm(cross(p13, p12));
+        
+        // TODO: Should be Overrideable Pipeline Constant (WGPU equivalent of unity shader feature)
+        let flatNorm = cross(p12, p13);
+        var n1 = uvToWorldSpaceNorm(sampleNormal(uvEdge1Point));
+        var n2 = uvToWorldSpaceNorm(sampleNormal(uvEdge2Point));
+        var n3 = uvToWorldSpaceNorm(sampleNormal(uvEdge3Point));
+        if(flatShading) { // Found putting AddVerticesAndTriangle in conditional seems bad, potentially because compiler executes both branches and masks out one?
+            n1 = flatNorm; n2 = flatNorm; n3 = flatNorm;
+        }
 
-        AddVerticesAndTriangle(worldEdge1Point, worldEdge2Point, worldEdge3Point, norm);
+        AddVerticesAndTriangle(worldEdge1Point, worldEdge2Point, worldEdge3Point, n1, n2, n3);
+        
     }
 
 }

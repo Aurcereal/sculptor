@@ -10,7 +10,6 @@ void MarchingCubes::MeshGenerator::Initialize() {
         BufferUsage::Vertex | BufferUsage::Storage, false);
     indexBuffer = createBuffer(manager->device, sizeof(uint32_t)*3 * maxTriangleCount, 
         BufferUsage::Index | BufferUsage::Storage, false);
-
     countBuffer = createBuffer(manager->device, sizeof(uint32_t) * 2, 
         BufferUsage::CopyDst | BufferUsage::Storage, false);
 
