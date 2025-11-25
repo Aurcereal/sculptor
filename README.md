@@ -44,7 +44,7 @@ For this milestone, I mostly just setup WebGPU and classes for drawing and using
 
 For this milestone, I set up compute shaders for generating and updating the 3D scalar field as well as compute shaders for generating the mesh from the field (marching cubes) and a compute shader for raycasting to the surface.  The user can edit geometry with their mouse.  
 
-
+https://github.com/user-attachments/assets/c61c4dfe-7189-4275-b309-5f1b5789c22c
 
 I plan on adding UI for changing the brush size and power, as well as adding color and smooth normals.  I plan on having extra operations like mirror, twist around an axis, and sdf-like domain repetition.  I'm not sure if I'll have time to add the sdf-like operations for the final submission.
 ## Milestone 1: Implementation part 1 (due 11/12)
