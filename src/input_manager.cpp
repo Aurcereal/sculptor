@@ -43,3 +43,7 @@ void InputManager::OnMouseScroll(float scroll) {
         f(scroll);
     }
 }
+
+void InputManager::Update(GLFWwindow* window) {
+    altDown = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
+}

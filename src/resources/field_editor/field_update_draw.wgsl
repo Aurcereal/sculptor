@@ -13,13 +13,12 @@ struct Parameters {
 @group(0) @binding(2) var<uniform> u_Parameters : Parameters;
 @group(0) @binding(3) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
 
-struct CameraTimeParameters {
-    projectionMatrix : mat4x4f,
-    viewMatrix : mat4x4f,
-    modelMatrix : mat4x4f,
-    time : f32
+struct BrushParameters {
+    brushType : u32,
+    brushMult : f32,
+    brushSize : f32
 };
-@group(0) @binding(4) var<uniform> u_CameraTimeParameters: CameraTimeParameters; // Probably only need this uniform temporarily
+@group(0) @binding(4) var<uniform> u_BrushParameters: BrushParameters;
 
 @compute
 @workgroup_size(4, 4, 4)
@@ -31,8 +30,8 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     if(pos.a > 0.1) {
         // TODO: uniform
         let brushPos = pos.xyz;
-        let brushSize = 0.9;
-        let brushMult = -0.05;
+        let brushSize = u_BrushParameters.brushSize;
+        let brushMult = u_BrushParameters.brushMult;
 
         //
         let diff = p - brushPos;
@@ -40,8 +39,9 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 
-        let curr = textureLoad(inputTexture, id, 0);
-        textureStore(outputTexture, id, curr+vec4f(amt, 0., 0., 0.));
+        let curr = textureLoad(inputTexture, id, 0).r;
+        let newVal = clamp(curr+amt, 0.0, 1.0);
+        textureStore(outputTexture, id, vec4(newVal,0.0,0.0,0.0));
     } else {
         textureStore(outputTexture, id, textureLoad(inputTexture, id, 0)); // TODO: Massively inefficient to recalculate everytime when it's just a double passthrough when we're not clicking
     }

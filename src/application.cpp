@@ -341,6 +341,7 @@ void Application::Terminate() {
 void Application::MainLoop() {
     glfwPollEvents(); // Process input events
 
+    inputManager.Update(window);
     marchingCubesManager->MainLoop();
 
     auto [surfaceTexture, targetView] = GetNextSurfaceViewData();

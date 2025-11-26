@@ -18,7 +18,7 @@ MarchingCubes::Manager::Manager(const Device* d, const Queue* q, InputManager *i
 
     raycaster.InitializeWithDependencies();
 
-    fieldEditor.GenerateField();
+    fieldEditor.GenerateSphereField();
     meshGenerator.GenerateMesh();
     drawer.UpdateIndexCount();
 }
@@ -31,6 +31,7 @@ void MarchingCubes::Manager::MainLoop() {
     if(inputHandler.mouseDown) {
         raycaster.RayFieldIntersect(camera.pos, camera.Raycast(inputManager->mousePosition));
     }
+    inputHandler.HandleUpdates();
 
     fieldEditor.UpdateField();
     meshGenerator.GenerateMesh();
@@ -50,6 +51,14 @@ void MarchingCubes::InputHandler::OnLMouseRelease(vec2) {
 }
 void MarchingCubes::InputHandler::OnMouseMove(vec2, vec2) {
     
+}
+void MarchingCubes::InputHandler::HandleUpdates() {
+    bool currentlyAdding = manager->guiToParams.brushParameters.brushMult > 0.0f;
+    bool willBeAdding = !manager->inputManager->altDown;
+    if(willBeAdding != currentlyAdding) {
+        manager->guiToParams.brushParameters.brushMult = (willBeAdding ? 1.0f : -1.0f) * abs(manager->guiToParams.brushParameters.brushMult);
+        manager->uniformManager.UpdateBrushParameters();
+    }
 }
 
 void MarchingCubes::Manager::Destroy() {

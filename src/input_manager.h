@@ -4,6 +4,9 @@
 #include <vector>
 #include <functional>
 
+#include <GLFW/glfw3.h>
+#include <glfw3webgpu.h>
+
 using namespace glm;
 using namespace std;
 
@@ -17,10 +20,14 @@ public:
     void AddOnMouseClickListener(const std::function<void(vec2)>&);
     void AddOnMouseReleaseListener(const std::function<void(vec2)>&);
     void AddOnMouseScrollListener(const std::function<void(float)>&);
+    
+    void Update(GLFWwindow*);
 
     vec2 mousePosition;
     bool lMouseDown = false;
     bool rMouseDown = false;
+
+    bool altDown;
 
 private:
     vector<std::function<void(vec2, vec2)>> onMouseMoveListeners;

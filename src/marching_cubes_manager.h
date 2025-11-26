@@ -15,6 +15,8 @@
 #include "input_manager.h"
 #include "gui_manager.h"
 
+#include <array>
+
 using namespace glm;
 
 namespace MarchingCubes {
@@ -138,18 +140,35 @@ namespace MarchingCubes {
         void Initialize();
         bool initialized = false;
 
-        void GenerateField();
+        void GenerateSphereField();
+        void GenerateCubeField();
+
         void UpdateField();
 
         TextureHolder fieldTexture;
         TextureHolder fieldScratchTexture;
+
+        const array<string, 2> initializeShapeObjects = {
+            "Sphere", "Cube"
+        };
+        const array<string, 2> drawShapeObjects = {
+            "Sphere", "Cube" // Cone, Sphere with Domain Rep Cut... look at doc just make each a shape
+        };
+        enum InitializeShapeObjects {
+            ISPHERE, ICUBE
+        };
+        enum DrawShapeObjects {
+            DSPHERE, DCUBE
+        };
 
         void Destroy();
 
     private:
         Manager *manager;
 
-        ComputeShader fieldInitializer;
+        ComputeShader sphereFieldInitializer;
+        ComputeShader cubeFieldInitializer;
+
         ComputeShader copybackShader; 
         void CopyScratchToField(); // Copy fieldScratchTexture -> fieldTexture
 
@@ -211,6 +230,8 @@ namespace MarchingCubes {
         void OnLMouseClick(vec2);
         void OnLMouseRelease(vec2);
         void OnMouseMove(vec2 newPos, vec2 delta);
+
+        void HandleUpdates();
 
         bool mouseDown = false;
 

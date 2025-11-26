@@ -15,7 +15,8 @@ void MarchingCubes::FieldEditor::Initialize() {
         SP::Parameter(SP::UTexture{&fieldTexture, true, true}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer})
     };
-    fieldInitializer.Initialize(manager->device, params, "/field_editor/initialize_field.wgsl");
+    sphereFieldInitializer.Initialize(manager->device, params, "./field_editor/sphere_initialize_field.wgsl");
+    cubeFieldInitializer.Initialize(manager->device, params, "./field_editor/cube_initialize_field.wgsl");
 
     //
     vector<ShaderParameter::Parameter> copybackParams = {
@@ -30,7 +31,7 @@ void MarchingCubes::FieldEditor::Initialize() {
         SP::Parameter(SP::UTexture{&fieldScratchTexture, true, true}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer}),
         SP::Parameter(SP::UBuffer{&manager->raycaster.intersectionBuffer, true}),
-        SP::Parameter(SP::UUniform{&manager->uniformManager.cameraTimeUniformBuffer}),
+        SP::Parameter(SP::UUniform{&manager->uniformManager.brushParameterBuffer}),
     };
     fieldDrawUpdater.Initialize(manager->device, drawUpdateParams, "./field_editor/field_update_draw.wgsl");
 
@@ -38,8 +39,11 @@ void MarchingCubes::FieldEditor::Initialize() {
     initialized = true;
 }
 
-void MarchingCubes::FieldEditor::GenerateField() {
-    fieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
+void MarchingCubes::FieldEditor::GenerateSphereField() {
+    sphereFieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
+}
+void MarchingCubes::FieldEditor::GenerateCubeField() {
+    cubeFieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
 }
 
 void MarchingCubes::FieldEditor::UpdateField() {
@@ -54,6 +58,6 @@ void MarchingCubes::FieldEditor::CopyScratchToField() {
 void MarchingCubes::FieldEditor::Destroy() {
     fieldTexture.Destroy();
     fieldScratchTexture.Destroy();
-    fieldInitializer.Destroy();
+    sphereFieldInitializer.Destroy();
     copybackShader.Destroy();
 }

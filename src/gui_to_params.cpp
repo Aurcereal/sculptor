@@ -1,12 +1,15 @@
 #include "marching_cubes_manager.h"
 #include <array>
 
+using namespace ImGui;;
+using namespace MarchingCubes;
+
 void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
-    mat4x4 bbxTRS = glm::rotate(mat4(1.0f), 0.4f, vec3(1,0,0)) * glm::scale(mat4(1.0f), vec3(manager->boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
+    mat4x4 bbxTRS = glm::scale(mat4(1.0f), vec3(manager->boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
-    mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale)) * glm::rotate(mat4(1.0f), -0.4f, vec3(1,0,0));
+    mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
     parameters = {256, 32, 0.5f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose};
-    brushParameters = {0, 1.0f, 1.0f};
+    brushParameters = {0, .05f, .9f};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
     guiManager->AddUIFunction(std::bind(&GUIToParams::MainLoop, this));
@@ -22,6 +25,7 @@ void MarchingCubes::GUIToParams::MainLoop() {
     ImGui::Begin("Controls");
 
     ImGui::SeparatorText("Brush Options");
+
     const array<char*, 3> brushNames = { "Brush A", "Brush B", "Bruch C"};
     ImGui::TextWrapped("Test text...");
     if(ImGui::Button(selectedBrush == -1 ? "Select Brush" : brushNames[selectedBrush]))
@@ -61,6 +65,26 @@ void MarchingCubes::GUIToParams::MainLoop() {
     if(selectedOperation != -1) {
         ImGui::Button("Apply Operation");
     }
+
+    if(Button("Reset Object"))
+        OpenPopup("reset_object_popup");
+    if(BeginPopup("reset_object_popup")) {
+        SeparatorText("Separator");
+        for(int i=0; i<manager->fieldEditor.initializeShapeObjects.size(); i++) {
+            if(Selectable(manager->fieldEditor.initializeShapeObjects[i].c_str())) {
+                switch(static_cast<FieldEditor::InitializeShapeObjects>(i)) {
+                    case FieldEditor::ISPHERE:
+                        manager->fieldEditor.GenerateSphereField();
+                        break;
+                    case FieldEditor::ICUBE:
+                        manager->fieldEditor.GenerateCubeField();
+                        break;
+                }
+            }
+        }
+        EndPopup();
+    }
+
 
     ImGui::SeparatorText("Settings");
 
