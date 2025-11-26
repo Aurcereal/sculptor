@@ -21,7 +21,7 @@ struct VertexOutput {
 @vertex
 fn vs_main(vIn: VertexInput) -> VertexOutput {
 	var out: VertexOutput;
-	var worldPos = (u_Uniforms.modelMatrix * vec4f(vIn.position, 1.0)).xyz;
+	let worldPos = (u_Uniforms.modelMatrix * vec4f(vIn.position, 1.0)).xyz;
 	var pos: vec4f = u_Uniforms.projectionMatrix * u_Uniforms.viewMatrix * vec4(worldPos, 1.);
 
 	out.position = pos;
@@ -34,7 +34,7 @@ fn vs_main(vIn: VertexInput) -> VertexOutput {
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 	let norm = normalize(in.normal.xyz);
 
-	let lightDir = -vec3f(1.0)/sqrt(3.0);
+	let lightDir = vec3f(0.0,-1.0,0.0);//-vec3f(1.0)/sqrt(3.0);
 	let diffuseColor = vec3f(0.3,0.3,0.4);
 	let specColor = vec3f(1.0);
 
@@ -42,8 +42,8 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 	diffuse = max(diffuse, 0.0);
 	let diffuseContrib = diffuse * diffuseColor;
 
-	let camPos = -u_Uniforms.viewMatrix[3].xyz;
-	let spec = pow(max(dot(normalize(reflect(in.worldPosition - camPos, norm)), -lightDir), 0.), 16.);
+	let camPos = (transpose(u_Uniforms.viewMatrix) * vec4f(-u_Uniforms.viewMatrix[3].xyz, 0.0)).xyz;
+	let spec = pow(max(dot(normalize(reflect(in.worldPosition-camPos, norm)), -lightDir), 0.), 32.);
 	let specContrib = spec * specColor;
 
 	var col = specContrib + diffuseContrib + vec3f(0.02,0.02,0.04);

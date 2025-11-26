@@ -413,7 +413,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let p13 = worldEdge3Point-worldEdge1Point;
         
         // TODO: Should be Overrideable Pipeline Constant (WGPU equivalent of unity shader feature)
-        let flatNorm = cross(p12, p13);
+        let flatNorm = normalize(cross(p12, p13));
         var n1 = uvToWorldSpaceNorm(sampleNormal(uvEdge1Point));
         var n2 = uvToWorldSpaceNorm(sampleNormal(uvEdge2Point));
         var n3 = uvToWorldSpaceNorm(sampleNormal(uvEdge3Point));

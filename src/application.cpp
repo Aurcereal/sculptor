@@ -358,7 +358,7 @@ void Application::MainLoop() {
     renderPassColorAttachment.resolveTarget = nullptr;
     renderPassColorAttachment.loadOp = WGPULoadOp_Clear; // What to do before executing render pass
     renderPassColorAttachment.storeOp = WGPUStoreOp_Store; // What to do after executing render pass
-    renderPassColorAttachment.clearValue = WGPUColor{0.1, 1.0, 0.5, 1.0 };
+    renderPassColorAttachment.clearValue = WGPUColor{0.1, 0.1, 0.1, 1.0 };
     #ifndef WEBGPU_BACKEND_WGPU
     renderPassColorAttachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED; // No depth buffer
     #endif
