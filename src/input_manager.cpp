@@ -1,4 +1,5 @@
 #include "input_manager.h"
+#include <imgui.h>
 #include <iostream>
 
 void InputManager::AddOnMouseMoveListener(const std::function<void(vec2, vec2)> &f) {
@@ -15,6 +16,9 @@ void InputManager::AddOnMouseScrollListener(const std::function<void(float)> &f)
 }
 
 void InputManager::OnMouseMove(vec2 newPos) {
+    ImGuiIO &io = ImGui::GetIO();
+    if(io.WantCaptureMouse) return;
+
     for(auto &f : onMouseMoveListeners) {
         f(newPos, newPos - mousePosition);
     }
@@ -22,6 +26,9 @@ void InputManager::OnMouseMove(vec2 newPos) {
 }
 
 void InputManager::OnMouseClick(bool leftMouse, bool pressDown) {
+    ImGuiIO &io = ImGui::GetIO();
+    if(io.WantCaptureMouse) return;
+
     if(leftMouse) {
         lMouseDown = pressDown;
         if(pressDown) {
@@ -39,11 +46,17 @@ void InputManager::OnMouseClick(bool leftMouse, bool pressDown) {
 }
 
 void InputManager::OnMouseScroll(float scroll) {
+    ImGuiIO &io = ImGui::GetIO();
+    if(io.WantCaptureMouse) return;
+
     for(auto &f : onMouseScrollListeners) {
         f(scroll);
     }
 }
 
 void InputManager::Update(GLFWwindow* window) {
+    ImGuiIO &io = ImGui::GetIO();
+    if(io.WantCaptureKeyboard) return;
+
     altDown = glfwGetKey(window, GLFW_KEY_LEFT_ALT);
 }
