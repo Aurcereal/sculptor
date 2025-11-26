@@ -19,6 +19,7 @@ private:
     void RotateAlongGlobalY(float);
     void RotateAlongLocalX(float);
     void MoveAlongLocalXY(vec2);
+    void OnMouseScroll(float);
 
     void OnMouseMove(vec2 newPos, vec2 delta);
     InputManager *inputManager;

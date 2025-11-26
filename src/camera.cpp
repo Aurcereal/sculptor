@@ -9,6 +9,7 @@ Camera::Camera(InputManager *im) :
 {
     pos = target-vec3(0,0,distFromTarget);
     inputManager->AddOnMouseMoveListener(std::bind(&Camera::OnMouseMove, this, std::placeholders::_1, std::placeholders::_2));
+    inputManager->AddOnMouseScrollListener(std::bind(&Camera::OnMouseScroll, this, std::placeholders::_1));
 }
 
 vec3 Camera::Raycast(vec2 uv) const {
@@ -58,6 +59,11 @@ void Camera::RotateAlongLocalX(float amt) {
     pos = target + lp;
     
     up = rot*up; fo = rot*fo;
+}
+
+void Camera::OnMouseScroll(float scr) {
+    distFromTarget *= pow(.98f, scr);
+    pos = target - fo*distFromTarget;
 }
 
 void Camera::OnMouseMove(vec2, vec2 delta) {

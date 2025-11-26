@@ -240,9 +240,9 @@ bool Application::Initialize() {
         auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
         if(app) app->inputManager.OnMouseClick(button == 0, action == 1);
     });
-    glfwSetScrollCallback(window, [](GLFWwindow */*window*/, double /*xoffset*/, double /*yoffset*/) {
-        //auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
-        //if(app) app->inputManager.OnMouseClick();
+    glfwSetScrollCallback(window, [](GLFWwindow *window, double /*xoffset*/, double yoffset) {
+        auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+        if(app) app->inputManager.OnMouseScroll(static_cast<float>(yoffset));
     });
 
     // Create surface
