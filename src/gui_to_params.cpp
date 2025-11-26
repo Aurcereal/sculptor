@@ -8,7 +8,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxTRS = glm::scale(mat4(1.0f), vec3(manager->boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
-    parameters = {256, 32, 0.5f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose};
+    parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose};
     brushParameters = {0, .05f, .9f};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 

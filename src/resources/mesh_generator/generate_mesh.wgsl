@@ -345,7 +345,7 @@ fn uvToWorldSpaceNorm(nor: vec3f) -> vec3f {
 
 fn sampleNormal(pos: vec3f) -> vec3f {
     // -Gradient since our inside is positive
-    let eps = vec2f(0.001, 0.0);
+    let eps = vec2f(0.01, 0.0);
     return -normalize(vec3f(
         textureSampleLevel(fieldTexture, fieldSampler, pos+eps.xyy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.xyy, 0.0).r,
         textureSampleLevel(fieldTexture, fieldSampler, pos+eps.yxy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.yxy, 0.0).r,
