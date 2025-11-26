@@ -20,6 +20,12 @@ struct BrushParameters {
 };
 @group(0) @binding(4) var<uniform> u_BrushParameters: BrushParameters;
 
+fn borderFalloff(uv: vec3f) -> f32 {
+    let ds = vec3f(0.5) - abs(uv-vec3f(0.5));
+    let d = min(min(ds.x, ds.y), ds.z);
+    return smoothstep(0.01, 0.1, d);
+}
+
 @compute
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -40,7 +46,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let amt = brushMult * falloff;
 
         let curr = textureLoad(inputTexture, id, 0).r;
-        let newVal = clamp(curr+amt, 0.0, 1.0);
+        let newVal = clamp(curr+amt, 0.0, borderFalloff(uv));
         textureStore(outputTexture, id, vec4(newVal,0.0,0.0,0.0));
     } else {
         textureStore(outputTexture, id, textureLoad(inputTexture, id, 0)); // TODO: Massively inefficient to recalculate everytime when it's just a double passthrough when we're not clicking
