@@ -23,7 +23,7 @@ namespace MarchingCubes {
 
     class Manager;
 
-    // https://eliemichel.github.io/WebGPU-AutoLayout/
+    // https://eliemichel.github.io/WebGPU-AutoLayout/ All of these structs need to have length multiple of 4 bytes
     struct Parameters {
         uint32_t textureResolution;
         uint32_t marchingCubesResolution;
@@ -40,6 +40,7 @@ namespace MarchingCubes {
         float brushSize;
         float _pad0[1];
         vec3 color;
+        float _pad1[1];
     };
 
     struct CameraTimeUniform {
@@ -147,7 +148,10 @@ namespace MarchingCubes {
         void UpdateField();
 
         TextureHolder fieldTexture;
+        TextureHolder fieldColorTexture;
+
         TextureHolder fieldScratchTexture;
+        TextureHolder fieldColorScratchTexture;
 
         const array<string, 2> initializeShapeObjects = {
             "Sphere", "Cube"

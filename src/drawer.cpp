@@ -19,7 +19,10 @@ void MarchingCubes::Drawer::Initialize(TextureFormat surfaceFormat) {
 
     // Initialize Shader
     vector<SP::Parameter> shaderParams = {
-      SP::Parameter(SP::UUniform{&manager->uniformManager.cameraTimeUniformBuffer})
+      SP::Parameter(SP::UUniform{&manager->uniformManager.cameraTimeUniformBuffer}),
+      SP::Parameter(SP::UTexture{&manager->fieldEditor.fieldColorTexture, true, false}),
+      SP::Parameter(SP::USampler{&manager->fieldEditor.fieldColorTexture}),
+      SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer})
     };
     drawShader.Initialize(manager->device, shaderParams, surfaceFormat, depthTextureHolder, "./drawing/blinn_phong.wgsl");
 

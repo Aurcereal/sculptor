@@ -1,4 +1,5 @@
 @group(0) @binding(0) var outputTexture: texture_storage_3d<r32float,write>;
+@group(0) @binding(1) var outputColorTexture: texture_storage_3d<rgba8unorm,write>;
 
 struct Parameters {
     texRes : u32,
@@ -9,7 +10,15 @@ struct Parameters {
     bbxInvTRS : mat4x4f,
     bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow
 };
-@group(0) @binding(1) var<uniform> u_Parameters : Parameters;
+@group(0) @binding(2) var<uniform> u_Parameters : Parameters;
+
+struct BrushParameters {
+    brushType : u32,
+    brushMult : f32,
+    brushSize : f32,
+    color : vec3f
+};
+@group(0) @binding(3) var<uniform> u_BrushParameters: BrushParameters;
 
 @compute
 @workgroup_size(4, 4, 4)
@@ -18,4 +27,5 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     var r = max(max(abs(p.x), abs(p.y)), abs(p.z));
     var amt = 0.4*smoothstep(0.8, 0.2, r);
     textureStore(outputTexture, id, vec4f(amt, 0.0, 0.0, 0.0));
+    textureStore(outputColorTexture, id, vec4f(step(u_Parameters.marchingCubesThreshold*0.7, amt) * u_BrushParameters.color, 1.0));
 }

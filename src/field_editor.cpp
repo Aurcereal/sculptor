@@ -10,10 +10,15 @@ void MarchingCubes::FieldEditor::Initialize() {
     fieldTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::R32Float, true, true);
     fieldScratchTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::R32Float, true, true);
 
+    fieldColorTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::RGBA8Unorm, true, true);
+    fieldColorScratchTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::RGBA8Unorm, true, true);
+
     //
     vector<ShaderParameter::Parameter> params = {
         SP::Parameter(SP::UTexture{&fieldTexture, true, true}),
-        SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer})
+        SP::Parameter(SP::UTexture{&fieldColorTexture, true, true}),
+        SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer}),
+        SP::Parameter(SP::UUniform{&manager->uniformManager.brushParameterBuffer})
     };
     sphereFieldInitializer.Initialize(manager->device, params, "./field_editor/sphere_initialize_field.wgsl");
     cubeFieldInitializer.Initialize(manager->device, params, "./field_editor/cube_initialize_field.wgsl");
@@ -21,14 +26,18 @@ void MarchingCubes::FieldEditor::Initialize() {
     //
     vector<ShaderParameter::Parameter> copybackParams = {
         SP::Parameter(SP::UTexture{&fieldScratchTexture, true, false}),
-        SP::Parameter(SP::UTexture{&fieldTexture, true, true})
+        SP::Parameter(SP::UTexture{&fieldColorScratchTexture, true, false}),
+        SP::Parameter(SP::UTexture{&fieldTexture, true, true}),
+        SP::Parameter(SP::UTexture{&fieldColorTexture, true, true})
     };
     copybackShader.Initialize(manager->device, copybackParams, "./field_editor/copy_back.wgsl");
     
     //
     vector<ShaderParameter::Parameter> drawUpdateParams = {
         SP::Parameter(SP::UTexture{&fieldTexture, true, false}),
+        SP::Parameter(SP::UTexture{&fieldColorTexture, true, false}),
         SP::Parameter(SP::UTexture{&fieldScratchTexture, true, true}),
+        SP::Parameter(SP::UTexture{&fieldColorScratchTexture, true, true}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer}),
         SP::Parameter(SP::UBuffer{&manager->raycaster.intersectionBuffer, true}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.brushParameterBuffer}),

@@ -17,6 +17,19 @@ struct VertexOutput {
 };
 
 @group(0) @binding(0) var<uniform> u_Uniforms: MyUniforms;
+@group(0) @binding(1) var fieldTexture: texture_3d<f32>;
+@group(0) @binding(2) var fieldSampler: sampler;
+
+struct Parameters {
+    texRes : u32,
+    marchingCubesRes : u32,
+    marchingCubesThreshold : f32,
+    flatShading : u32,
+    bbxTRS : mat4x4f,
+    bbxInvTRS : mat4x4f,
+    bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow
+};
+@group(0) @binding(3) var<uniform> u_Parameters : Parameters;
 
 @vertex
 fn vs_main(vIn: VertexInput) -> VertexOutput {
@@ -35,7 +48,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 	let norm = normalize(in.normal.xyz);
 
 	let lightDir = vec3f(0.0,-1.0,0.0);//-vec3f(1.0)/sqrt(3.0);
-	let diffuseColor = vec3f(0.3,0.3,0.4);
+	let diffuseColor = textureSample(fieldTexture, fieldSampler, (u_Parameters.bbxInvTRS * vec4(in.worldPosition,1.0)).xyz).rgb;//vec3f(0.3,0.3,0.4);
 	let specColor = vec3f(1.0);
 
 	var diffuse = dot(-lightDir, norm);
