@@ -46,7 +46,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 	let spec = pow(max(dot(normalize(reflect(in.worldPosition-camPos, norm)), -lightDir), 0.), 32.);
 	let specContrib = spec * specColor;
 
-	var col = specContrib + diffuseContrib + vec3f(0.02,0.02,0.04);
+	var col = specContrib + diffuseContrib + vec3f(0.2,0.2,0.4);
 	var correctedCol = pow(col, vec3f(2.2));
 	return vec4(correctedCol, 1.0);
 }

@@ -9,7 +9,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
     parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose};
-    brushParameters = {0, .05f, .9f};
+    brushParameters = {0, .05f, .9f, -1.0f, vec3(0.3f,0.3f,0.4f)};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
     guiManager->AddUIFunction(std::bind(&GUIToParams::MainLoop, this));
@@ -38,6 +38,19 @@ void MarchingCubes::GUIToParams::MainLoop() {
             }
         }
         ImGui::EndPopup();
+    }
+
+    if(selectedBrush != -1) {
+        if(SliderFloat("Brush Size", &brushParameters.brushSize, 0.1f, 5.0f, "%.2f"))
+            manager->uniformManager.UpdateBrushParameters();
+        if(SliderFloat("Brush Power", &brushParameters.brushMult, 0.001f, 1.0f, "%.4f"))
+            manager->uniformManager.UpdateBrushParameters();
+
+        array<float, 3> cols = { brushParameters.color.r, brushParameters.color.g, brushParameters.color.b };
+        if(ColorEdit3("Brush Color", cols.data())) {
+            brushParameters.color = vec3(cols[0], cols[1], cols[2]);
+            manager->uniformManager.UpdateBrushParameters();
+        }
     }
 
     ImGui::SeparatorText("Operations");
@@ -102,10 +115,10 @@ void MarchingCubes::GUIToParams::MainLoop() {
         ImGui::EndPopup();
     }
 
-    int mr = static_cast<int>(manager->guiToParams.parameters.marchingCubesResolution);
+    int mr = static_cast<int>(parameters.marchingCubesResolution);
     if(ImGui::SliderInt("Marching Cubes Resolution", &mr, 8, 64)) {
         std::cout << "res chang" << std::endl;
-        manager->guiToParams.parameters.marchingCubesResolution = static_cast<uint32_t>(mr);
+        parameters.marchingCubesResolution = static_cast<uint32_t>(mr);
         manager->uniformManager.UpdateParameters();
     }
 

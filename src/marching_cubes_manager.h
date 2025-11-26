@@ -39,6 +39,7 @@ namespace MarchingCubes {
         float brushMult;
         float brushSize;
         float _pad0[1];
+        vec3 color;
     };
 
     struct CameraTimeUniform {

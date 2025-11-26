@@ -36,6 +36,16 @@ fn rayBoxIntersect(ro : vec3f, ird : vec3f) -> vec2f {
 	return vec2f(tMin, tMax);
 }
 
+fn sampleNormal(pos: vec3f) -> vec3f {
+    // -Gradient since our inside is positive
+    let eps = vec2f(0.01, 0.0);
+    return -normalize(vec3f(
+        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.xyy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.xyy, 0.0).r,
+        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.yxy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.yxy, 0.0).r,
+        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.yyx, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.yyx, 0.0).r
+    ));
+}
+
 @compute 
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -59,27 +69,18 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                 let s = textureSampleLevel(fieldTexture, fieldSampler, currUV, 0.0).r;
                 if(s >= u_Parameters.marchingCubesThreshold) {
                     let lHitPos = lro + lrd*currT;
-                    // let lNorm = 
+                    let lNorm = sampleNormal(lHitPos);
 
                     let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
-                    let norm = vec3f(0.0,1.0,0.0);
+                    let norm = (u_Parameters.bbxInverseTranspose * vec4f(lNorm, 0.0)).xyz;
 
-                    intersectionBuffer[0] = vec4f(hitPos, 1.0);
+                    intersectionBuffer[0] = vec4f(hitPos-norm*0.0, 1.0);
                     intersectionBuffer[1] = vec4f(norm, 0.0);
 
                     return;
                 }
                 currT += stepSize;
             }
-
-            // let lHitPos = lro + lrd*currT;
-            // // let lNorm = 
-
-            // let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
-            // let norm = vec3f(0.0,1.0,0.0);
-
-            // intersectionBuffer[0] = vec4f(hitPos, 1.0);
-            // intersectionBuffer[1] = vec4f(norm, 0.0);
             
         }
 
