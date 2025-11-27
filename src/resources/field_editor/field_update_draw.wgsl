@@ -11,8 +11,8 @@ struct Parameters {
     bbxTRS : mat4x4f,
     bbxInvTRS : mat4x4f,
     bbxInverseTranspose : mat4x4f, // Should be mat3x3 but alignment isn't working somehow
-    mirrorX: u32,
-    paintMode: u32
+    mirrorX : u32,
+    paintMode : u32
 };
 @group(0) @binding(4) var<uniform> u_Parameters : Parameters;
 @group(0) @binding(5) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
@@ -21,6 +21,7 @@ struct BrushParameters {
     brushType : u32,
     brushMult : f32,
     brushSize : f32,
+    brushHardness : f32,
     color : vec3f
 };
 @group(0) @binding(6) var<uniform> u_BrushParameters: BrushParameters;
@@ -51,7 +52,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         //
         var diff = p - brushPos;
         diff = 2.5*norm*dot(diff,norm) + (diff - norm*dot(diff, norm));
-        var falloff = max(0., 1.-length(diff)/brushSize);//dot(diff, diff)/(brushSize*brushSize));
+        var falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, length(diff)/brushSize));//dot(diff, diff)/(brushSize*brushSize));
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 

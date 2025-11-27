@@ -9,7 +9,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
     parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0};
-    brushParameters = {0, .05f, .9f, -1.0f, vec3(0.3f,0.3f,0.4f)};
+    brushParameters = {0, .05f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f)};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
     guiManager->AddUIFunction(std::bind(&GUIToParams::MainLoop, this));
@@ -56,6 +56,8 @@ void MarchingCubes::GUIToParams::MainLoop() {
         if(SliderFloat("Brush Size", &brushParameters.brushSize, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_Logarithmic))
             manager->uniformManager.UpdateBrushParameters();
         if(SliderFloat("Brush Power", &brushParameters.brushMult, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
+            manager->uniformManager.UpdateBrushParameters();
+        if(SliderFloat("Brush Hardness", &brushParameters.brushHardness, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
             manager->uniformManager.UpdateBrushParameters();
 
         array<float, 3> cols = { brushParameters.color.r, brushParameters.color.g, brushParameters.color.b };

@@ -41,7 +41,7 @@ namespace MarchingCubes {
         uint32 brushType;
         float brushMult;
         float brushSize;
-        float _pad0[1];
+        float brushHardness;
         vec3 color;
         float _pad1[1];
     };

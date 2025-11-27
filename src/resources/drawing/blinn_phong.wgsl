@@ -52,14 +52,14 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 	let specColor = vec3f(1.0);
 
 	var diffuse = dot(-lightDir, norm);
-	diffuse = max(diffuse, 0.0);
+	diffuse = max(diffuse, 0.0)+0.45;
 	let diffuseContrib = diffuse * diffuseColor;
 
 	let camPos = (transpose(u_Uniforms.viewMatrix) * vec4f(-u_Uniforms.viewMatrix[3].xyz, 0.0)).xyz;
 	let spec = pow(max(dot(normalize(reflect(in.worldPosition-camPos, norm)), -lightDir), 0.), 32.);
 	let specContrib = spec * specColor;
 
-	var col = specContrib + diffuseContrib + vec3f(0.2,0.2,0.4);
+	var col = specContrib + diffuseContrib;// + vec3f(0.2,0.2,0.4);
 	var correctedCol = pow(col, vec3f(2.2));
 	return vec4(correctedCol, 1.0);
 }
