@@ -157,11 +157,15 @@ namespace MarchingCubes {
         TextureHolder fieldScratchTexture;
         TextureHolder fieldColorScratchTexture;
 
+        const array<string, 5> paintBrushTextures = {
+            "Flat Color", "Polka Dot", "Checker", "Striped", "Swirly"
+        };
+
         const array<string, 3> initializeShapeObjects = {
             "Sphere", "Cube", "Plane"
         };
-        const array<string, 2> drawShapeObjects = {
-            "Sphere", "Cube" // Cone, Sphere with Domain Rep Cut... look at doc just make each a shape
+        const array<string, 5> drawShapeObjects = {
+            "Sphere", "Cube", "Cone", "3D Checker", "Sphere Cut",
         };
         enum InitializeShapeObjects {
             ISPHERE, ICUBE, IPLANE
