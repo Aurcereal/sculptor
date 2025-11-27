@@ -32,6 +32,8 @@ namespace MarchingCubes {
         mat4x4 boundingBoxTRS;
         mat4x4 boundingBoxInverseTRS;
         mat4x4 boundingBoxInverseTranspose;
+        uint32_t mirrorX;
+        float _padding0[3];
     };
 
     struct BrushParameters {

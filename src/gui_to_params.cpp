@@ -8,7 +8,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxTRS = glm::scale(mat4(1.0f), vec3(manager->boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
-    parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose};
+    parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0};
     brushParameters = {0, .05f, .9f, -1.0f, vec3(0.3f,0.3f,0.4f)};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
@@ -25,6 +25,12 @@ void MarchingCubes::GUIToParams::MainLoop() {
     ImGui::Begin("Controls");
 
     ImGui::SeparatorText("Brush Options");
+
+    bool mirrorX = manager->guiToParams.parameters.mirrorX == 1;
+    if(Checkbox("Mirror X", &mirrorX)) {
+        manager->guiToParams.parameters.mirrorX = mirrorX ? 1 : 0;
+        manager->uniformManager.UpdateParameters();
+    }
 
     const array<char*, 3> brushNames = { "Brush A", "Brush B", "Bruch C"};
     ImGui::TextWrapped("Test text...");

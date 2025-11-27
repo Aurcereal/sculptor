@@ -10,7 +10,8 @@ struct Parameters {
     flatShading : u32,
     bbxTRS : mat4x4f,
     bbxInvTRS : mat4x4f,
-    bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow
+    bbxInverseTranspose : mat4x4f, // Should be mat3x3 but alignment isn't working somehow
+    mirrorX: u32
 };
 @group(0) @binding(4) var<uniform> u_Parameters : Parameters;
 @group(0) @binding(5) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
@@ -32,11 +33,15 @@ fn borderFalloff(uv: vec3f) -> f32 {
 @compute
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
-    var uv = (vec3f(id.xyz)/f32(u_Parameters.texRes));
-    var p = (u_Parameters.bbxTRS * vec4f(uv, 1.0)).xyz;
-
     let pos = intersectionBuffer[0];
     if(pos.a > 0.1) {
+        var uv = (vec3f(id.xyz)/f32(u_Parameters.texRes));
+        if(bool(u_Parameters.mirrorX)) {
+            let mirrorDir = step(0.5, (u_Parameters.bbxInvTRS * pos).x)*2.-1.;
+            uv.x = 0.5+mirrorDir*abs(uv.x-0.5);
+        }
+        var p = (u_Parameters.bbxTRS * vec4f(uv, 1.0)).xyz;
+
         let norm = intersectionBuffer[1].xyz;
         let brushPos = pos.xyz;
         let brushSize = u_BrushParameters.brushSize;
