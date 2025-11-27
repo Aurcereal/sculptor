@@ -11,7 +11,8 @@ struct Parameters {
     bbxTRS : mat4x4f,
     bbxInvTRS : mat4x4f,
     bbxInverseTranspose : mat4x4f, // Should be mat3x3 but alignment isn't working somehow
-    mirrorX: u32
+    mirrorX: u32,
+    paintMode: u32
 };
 @group(0) @binding(4) var<uniform> u_Parameters : Parameters;
 @group(0) @binding(5) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
@@ -54,12 +55,15 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 
+        let sculptAmt = (1.-f32(u_Parameters.paintMode)) * amt;
+        let colAmt = 10. * amt;
+
         let curr = textureLoad(inputTexture, id, 0).r;
-        var newVal = clamp(curr+amt, 0.0, borderFalloff(uv));
+        var newVal = clamp(curr+sculptAmt, 0.0, borderFalloff(uv));
         textureStore(outputTexture, id, vec4(newVal,0.0,0.0,0.0));
 
         let currCol = textureLoad(inputColorTexture, id, 0);
-        let newCol = mix(currCol, vec4f(u_BrushParameters.color, 1.0), amt*10.0);
+        let newCol = mix(currCol, vec4f(u_BrushParameters.color, 1.0), colAmt);
         textureStore(outputColorTexture, id, newCol);
     } else {
         textureStore(outputTexture, id, textureLoad(inputTexture, id, 0)); // TODO: Massively inefficient to recalculate everytime when it's just a double passthrough when we're not clicking
