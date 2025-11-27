@@ -72,7 +72,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                     let lNorm = sampleNormal(lHitPos);
 
                     let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
-                    let norm = (u_Parameters.bbxInverseTranspose * vec4f(lNorm, 0.0)).xyz;
+                    let norm = normalize((u_Parameters.bbxInverseTranspose * vec4f(lNorm, 0.0))).xyz;
 
                     intersectionBuffer[0] = vec4f(hitPos-norm*0.0, 1.0);
                     intersectionBuffer[1] = vec4f(norm, 0.0);

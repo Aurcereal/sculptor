@@ -37,13 +37,14 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 
     let pos = intersectionBuffer[0];
     if(pos.a > 0.1) {
-        // TODO: uniform
+        let norm = intersectionBuffer[1].xyz;
         let brushPos = pos.xyz;
         let brushSize = u_BrushParameters.brushSize;
         let brushMult = u_BrushParameters.brushMult;
 
         //
-        let diff = p - brushPos;
+        var diff = p - brushPos;
+        diff = 2.5*norm*dot(diff,norm) + (diff - norm*dot(diff, norm));
         var falloff = max(0., 1.-length(diff)/brushSize);//dot(diff, diff)/(brushSize*brushSize));
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;

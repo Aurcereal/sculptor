@@ -21,7 +21,7 @@ void MarchingCubes::FieldEditor::Initialize() {
         SP::Parameter(SP::UUniform{&manager->uniformManager.brushParameterBuffer})
     };
     sphereFieldInitializer.Initialize(manager->device, params, "./field_editor/sphere_initialize_field.wgsl");
-    cubeFieldInitializer.Initialize(manager->device, params, "./field_editor/cube_initialize_field.wgsl");
+    cubeFieldInitializer.Initialize(manager->device, params, "./field_editor/plane_initialize_field.wgsl");
 
     //
     vector<ShaderParameter::Parameter> copybackParams = {
