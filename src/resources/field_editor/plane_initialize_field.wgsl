@@ -31,7 +31,7 @@ fn sdBox(p: vec3f, dim: vec3f) -> f32 {
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     var p = (vec3f(id.xyz)/f32(u_Parameters.texRes))*2.-1.;
-    var amt = (0.1-0.4*sdBox(p, vec3f(1.,0.05, 1.)));
+    var amt = (0.1-0.4*sdBox(p-vec3f(0.,-0.8,0.), vec3f(1.5,0.08, 1.5)));
     textureStore(outputTexture, id, vec4f(amt, 0.0, 0.0, 0.0));
     textureStore(outputColorTexture, id, vec4f(step(u_Parameters.marchingCubesThreshold*0.7, amt) * u_BrushParameters.color, 1.0));
 }

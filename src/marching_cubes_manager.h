@@ -144,6 +144,7 @@ namespace MarchingCubes {
 
         void GenerateSphereField();
         void GenerateCubeField();
+        void GeneratePlaneField();
 
         void UpdateField();
 
@@ -153,14 +154,14 @@ namespace MarchingCubes {
         TextureHolder fieldScratchTexture;
         TextureHolder fieldColorScratchTexture;
 
-        const array<string, 2> initializeShapeObjects = {
-            "Sphere", "Cube"
+        const array<string, 3> initializeShapeObjects = {
+            "Sphere", "Cube", "Plane"
         };
         const array<string, 2> drawShapeObjects = {
             "Sphere", "Cube" // Cone, Sphere with Domain Rep Cut... look at doc just make each a shape
         };
         enum InitializeShapeObjects {
-            ISPHERE, ICUBE
+            ISPHERE, ICUBE, IPLANE
         };
         enum DrawShapeObjects {
             DSPHERE, DCUBE
@@ -173,6 +174,7 @@ namespace MarchingCubes {
 
         ComputeShader sphereFieldInitializer;
         ComputeShader cubeFieldInitializer;
+        ComputeShader planeFieldInitializer;
 
         ComputeShader copybackShader; 
         void CopyScratchToField(); // Copy fieldScratchTexture -> fieldTexture

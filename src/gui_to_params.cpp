@@ -41,9 +41,9 @@ void MarchingCubes::GUIToParams::MainLoop() {
     }
 
     if(selectedBrush != -1) {
-        if(SliderFloat("Brush Size", &brushParameters.brushSize, 0.1f, 5.0f, "%.2f"))
+        if(SliderFloat("Brush Size", &brushParameters.brushSize, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_Logarithmic))
             manager->uniformManager.UpdateBrushParameters();
-        if(SliderFloat("Brush Power", &brushParameters.brushMult, 0.001f, 1.0f, "%.4f"))
+        if(SliderFloat("Brush Power", &brushParameters.brushMult, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
             manager->uniformManager.UpdateBrushParameters();
 
         array<float, 3> cols = { brushParameters.color.r, brushParameters.color.g, brushParameters.color.b };
@@ -91,6 +91,9 @@ void MarchingCubes::GUIToParams::MainLoop() {
                         break;
                     case FieldEditor::ICUBE:
                         manager->fieldEditor.GenerateCubeField();
+                        break;
+                    case FieldEditor::IPLANE:
+                        manager->fieldEditor.GeneratePlaneField();
                         break;
                 }
             }
