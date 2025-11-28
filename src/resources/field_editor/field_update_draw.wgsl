@@ -26,7 +26,8 @@ struct BrushParameters {
     color : vec3f,
     drawShape : u32,
     paintTexture : u32,
-    sculptTexture : u32
+    sculptTexture : u32,
+    brushFollowNormal : u32
 };
 @group(0) @binding(7) var<uniform> u_BrushParameters: BrushParameters;
 
@@ -92,7 +93,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         if(bool(u_Parameters.mirrorX)) {
             let mirrorDir = step(0.5, (u_Parameters.bbxInvTRS * pos).x)*2.-1.;
             uv.x = 0.5+mirrorDir*abs(uv.x-0.5);
-        }
+        } // TODO: fix mirror twirl (bring uv back after twirling)
         var p = (u_Parameters.bbxTRS * vec4f(uv, 1.0)).xyz;
 
         let norm = intersectionBuffer[1].xyz;
@@ -101,8 +102,12 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let brushMult = u_BrushParameters.brushMult;
 
         // Calculate Falloff
-        var lp = transpose(createFrame(norm)) * (p - brushPos);
-        lp.z *= 2.5;
+        var lp = p - brushPos;
+        if(bool(u_BrushParameters.brushFollowNormal)) {
+            lp = transpose(createFrame(norm)) * lp;
+            lp.z *= 2.5;
+        }
+        
 
         var r = 0.; var falloff = 0.;
         switch u_BrushParameters.drawShape {

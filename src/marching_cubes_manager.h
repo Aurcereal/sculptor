@@ -46,7 +46,8 @@ namespace MarchingCubes {
         uint32 drawShape;
         uint32 paintTexture;
         uint32 sculptTexture;
-        float _padding0[2];
+        uint32 brushFollowNormal;
+        float _padding0;
     };
 
     struct CameraTimeUniform {

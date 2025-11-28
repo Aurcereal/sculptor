@@ -9,7 +9,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
     parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0};
-    brushParameters = {0, .02f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f), 0, 0, 0};
+    brushParameters = {0, .02f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f), 0, 0, 0, 1};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
     guiManager->AddUIFunction(std::bind(&GUIToParams::MainLoop, this));
@@ -53,6 +53,12 @@ void MarchingCubes::GUIToParams::MainLoop() {
 
     if(brushParameters.brushType == 0 && CollapsingHeader("Draw Options")) {
         Indent();
+        bool followNormal = brushParameters.brushFollowNormal == 1;
+        if(Checkbox("Align Draw Shape w/ Normal", &followNormal)) {
+            brushParameters.brushFollowNormal = followNormal ? 1 : 0;
+            manager->uniformManager.UpdateBrushParameters();
+        }
+
         if(Button(("Brush Shape: " + drawShapes[brushParameters.drawShape]).c_str()))
             OpenPopup("select_draw_shape_popup");
         if(BeginPopup("select_draw_shape_popup")) {
