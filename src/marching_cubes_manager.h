@@ -38,12 +38,12 @@ namespace MarchingCubes {
     };
 
     struct BrushParameters {
-        uint32 brushType;
+        uint32 brushShape;
         float brushMult;
         float brushSize;
         float brushHardness;
         vec3 color;
-        float _pad1[1];
+        uint32 brushOperation;
     };
 
     struct CameraTimeUniform {
@@ -112,6 +112,9 @@ namespace MarchingCubes {
     private:
         Manager *manager;
 
+        const array<string, 5> brushTypesUI = {
+            "Sphere", "Box", "Cone", "Twirl", "Checker"
+        };
         int selectedBrush = 0;
         int selectedOperation = -1;
 

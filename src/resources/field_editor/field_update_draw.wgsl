@@ -1,7 +1,8 @@
 @group(0) @binding(0) var inputTexture: texture_3d<f32>;
 @group(0) @binding(1) var inputColorTexture: texture_3d<f32>;
-@group(0) @binding(2) var outputTexture: texture_storage_3d<r32float,write>;
-@group(0) @binding(3) var outputColorTexture: texture_storage_3d<rgba8unorm,write>;
+@group(0) @binding(2) var fieldSampler: sampler;
+@group(0) @binding(3) var outputTexture: texture_storage_3d<r32float,write>;
+@group(0) @binding(4) var outputColorTexture: texture_storage_3d<rgba8unorm,write>;
 
 struct Parameters {
     texRes : u32,
@@ -14,23 +15,45 @@ struct Parameters {
     mirrorX : u32,
     paintMode : u32
 };
-@group(0) @binding(4) var<uniform> u_Parameters : Parameters;
-@group(0) @binding(5) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
+@group(0) @binding(5) var<uniform> u_Parameters : Parameters;
+@group(0) @binding(6) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
 
 struct BrushParameters {
-    brushType : u32,
+    brushShape : u32,
     brushMult : f32,
     brushSize : f32,
     brushHardness : f32,
-    color : vec3f
+    color : vec3f,
+    brushOperation : u32
 };
-@group(0) @binding(6) var<uniform> u_BrushParameters: BrushParameters;
+@group(0) @binding(7) var<uniform> u_BrushParameters: BrushParameters;
 
 fn borderFalloff(uv: vec3f) -> f32 {
     let ds = vec3f(0.5) - abs(uv-vec3f(0.5));
     let d = min(min(ds.x, ds.y), ds.z);
     return smoothstep(0.01, 0.1, d);
 }
+
+fn rot(v: vec3f, o: f32) -> mat4x4f {
+    // https://en.wikipedia.org/wiki/Rotation_matrix
+    let cosAngle = cos(o);
+    let sinAngle = sin(o);
+    let oneMinusCosAngle = 1.-cosAngle;
+    return mat4x4f(
+        vec4f(v[0]*v[0]*oneMinusCosAngle+cosAngle, v[0]*v[1]*oneMinusCosAngle+v[2]*sinAngle, v[0]*v[2]*oneMinusCosAngle-v[1]*sinAngle, 0.),
+        vec4f(v[0]*v[1]*oneMinusCosAngle-v[2]*sinAngle, v[1]*v[1]*oneMinusCosAngle+cosAngle, v[1]*v[2]*oneMinusCosAngle+v[0]*sinAngle, 0.),
+        vec4f(v[0]*v[2]*oneMinusCosAngle+v[1]*sinAngle, v[1]*v[2]*oneMinusCosAngle-v[0]*sinAngle, v[2]*v[2]*oneMinusCosAngle+cosAngle, 0.),
+        vec4f(0., 0., 0., 1.)
+        );
+}
+
+const BSHAPE_SPHERE: u32 = 0;
+const BSHAPE_BOX: u32 = 1;
+const BSHAPE_TRI: u32 = 2;
+const BSHAPE_CONE: u32 = 3;
+
+const BOP_DRAW: u32 = 0;
+const BOP_TWIRL: u32 = 1;
 
 @compute
 @workgroup_size(4, 4, 4)
@@ -52,15 +75,22 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         //
         var diff = p - brushPos;
         diff = 2.5*norm*dot(diff,norm) + (diff - norm*dot(diff, norm));
-        var falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, length(diff)/brushSize));//dot(diff, diff)/(brushSize*brushSize));
+        let r = length(diff);
+        var falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 
         let sculptAmt = (1.-f32(u_Parameters.paintMode)) * amt;
         let colAmt = 10. * amt;
 
+        switch(u_Parameters.brushType) {
+            case 
+        }
         let curr = textureLoad(inputTexture, id, 0).r;
-        var newVal = clamp(curr+sculptAmt, 0.0, borderFalloff(uv));
+        let rp = brushPos + (rot(norm, 5.*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
+        var ruv = (u_Parameters.bbxInvTRS * vec4f(rp, 1.)).xyz;
+        var newVal = textureSampleLevel(inputTexture, fieldSampler, ruv+vec3f(0.5)/f32(u_Parameters.texRes), 0.).r; 
+        //var newVal = clamp(curr+sculptAmt, 0.0, borderFalloff(uv));
         textureStore(outputTexture, id, vec4(newVal,0.0,0.0,0.0));
 
         let currCol = textureLoad(inputColorTexture, id, 0);

@@ -37,6 +37,7 @@ void MarchingCubes::FieldEditor::Initialize() {
     vector<ShaderParameter::Parameter> drawUpdateParams = {
         SP::Parameter(SP::UTexture{&fieldTexture, true, false}),
         SP::Parameter(SP::UTexture{&fieldColorTexture, true, false}),
+        SP::Parameter(SP::USampler{&fieldTexture}),
         SP::Parameter(SP::UTexture{&fieldScratchTexture, true, true}),
         SP::Parameter(SP::UTexture{&fieldColorScratchTexture, true, true}),
         SP::Parameter(SP::UUniform{&manager->uniformManager.parameterBuffer}),
