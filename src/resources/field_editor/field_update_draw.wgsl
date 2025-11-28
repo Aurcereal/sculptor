@@ -97,10 +97,6 @@ fn sdBox(p: vec3f, dim: vec3f) -> f32 {
     return step(s, 0.) * ds + s;
 }
 
-// const ST_POLKADOT: u32 = 2;
-// const ST_SPHEREPATTERN: u32 = 3;
-// const ST_GYROID: u32 = 4;
-
 fn intersectSculptTexture(p: vec3f) -> f32 {
     switch u_BrushParameters.sculptTexture {
         case ST_NONE, ST_NOISY, default: {
@@ -123,10 +119,17 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             let s1 = abs(length(lp)-size*.45)-0.1;
             let lp2 = vmod(lp, vec3f(size*.5))-vec3f(size*.25);
             let s2 = abs(length(lp2)-size*.225)-0.05;
-            return -min(s1, s2);
+            return -min(s1, s2); // Could scalar this
         }
-        case ST_GYROID: {
-            return 0.;
+        case ST_GYROID: { // mini.gmshaders.com/p/dot-noise
+            //The golden ratio: mini.gmshaders.com/p/phi
+            let phi = 1.618033988;
+            let scale = 10.;
+            let gold = mat3x3f(
+                -0.571464913, 0.814921382, 0.096597072,
+                -0.278044873, -0.303026659, 0.911518454,
+                0.772087367, 0.494042493, 0.399753815);
+            return u_Parameters.marchingCubesThreshold+(dot(cos(scale * gold * p), sin(phi * scale * p * gold))+1.5)*.2;
         }
         case ST_CUBECOMB: {
             let size = 0.2;
@@ -134,7 +137,7 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             return sdBox(lp, vec3f(size*.9)); // u_Parameters.marchingCubesThreshold
         }
         case ST_COMB: {
-            return step(sin(p.x*50.), 0.); // dot w (1,1,1)/sqrt(3)
+            return step(sin(dot(p,vec3f(1.)/sqrt(3.))*50.), 0.);
         }
     }
 }
