@@ -38,12 +38,15 @@ namespace MarchingCubes {
     };
 
     struct BrushParameters {
-        uint32 brushShape;
+        uint32 brushType;
         float brushMult;
         float brushSize;
         float brushHardness;
         vec3 color;
-        uint32 brushOperation;
+        uint32 drawShape;
+        uint32 paintTexture;
+        uint32 sculptTexture;
+        float _padding0[2];
     };
 
     struct CameraTimeUniform {
@@ -112,10 +115,28 @@ namespace MarchingCubes {
     private:
         Manager *manager;
 
-        const array<string, 5> brushTypesUI = {
-            "Sphere", "Box", "Cone", "Twirl", "Checker"
+        const array<string, 2> brushNames = {
+            "Draw", "Twirl"
         };
-        int selectedBrush = 0;
+
+        const array<string, 5> drawShapes = {
+            "Sphere", "Cube", "Cone", "Triangle", "Star" 
+        };
+        const array<string, 7> paintTextures = {
+            "Solid Color", "Swirly", "Polka Dot", "Stripes", "Checker", "Circle Pattern", "Noisy"
+        };
+        const array<string, 7> sculptTextures = { // Usually booleans
+            "None", "Checker", "Polka Dot", "Striped", "Sphere Pattern", "Gyroid", 
+            "Noisy" // This one should make the brush itself be noisy towards the edge, an r offset
+        };
+
+        const array<string, 3> initializeShapeObjects = {
+            "Sphere", "Cube", "Plane"
+        };
+        enum InitializeShapeObjects {
+            ISPHERE, ICUBE, IPLANE
+        };
+
         int selectedOperation = -1;
 
         void MainLoop();
@@ -159,23 +180,6 @@ namespace MarchingCubes {
 
         TextureHolder fieldScratchTexture;
         TextureHolder fieldColorScratchTexture;
-
-        const array<string, 5> paintBrushTextures = {
-            "Flat Color", "Polka Dot", "Checker", "Striped", "Swirly"
-        };
-
-        const array<string, 3> initializeShapeObjects = {
-            "Sphere", "Cube", "Plane"
-        };
-        const array<string, 5> drawShapeObjects = {
-            "Sphere", "Cube", "Cone", "3D Checker", "Sphere Cut",
-        };
-        enum InitializeShapeObjects {
-            ISPHERE, ICUBE, IPLANE
-        };
-        enum DrawShapeObjects {
-            DSPHERE, DCUBE
-        };
 
         void Destroy();
 

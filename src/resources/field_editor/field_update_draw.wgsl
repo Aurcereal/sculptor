@@ -19,12 +19,14 @@ struct Parameters {
 @group(0) @binding(6) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
 
 struct BrushParameters {
-    brushShape : u32,
+    brushType : u32,
     brushMult : f32,
     brushSize : f32,
     brushHardness : f32,
     color : vec3f,
-    brushOperation : u32
+    drawShape : u32,
+    paintTexture : u32,
+    sculptTexture : u32
 };
 @group(0) @binding(7) var<uniform> u_BrushParameters: BrushParameters;
 
@@ -47,13 +49,39 @@ fn rot(v: vec3f, o: f32) -> mat4x4f {
         );
 }
 
-const BSHAPE_SPHERE: u32 = 0;
-const BSHAPE_BOX: u32 = 1;
-const BSHAPE_TRI: u32 = 2;
-const BSHAPE_CONE: u32 = 3;
+const BT_DRAW: u32 = 0;
+const BT_TWIRL: u32 = 1;
 
-const BOP_DRAW: u32 = 0;
-const BOP_TWIRL: u32 = 1;
+const DS_SPHERE: u32 = 0;
+const DS_CUBE: u32 = 1;
+const DS_CONE: u32 = 2;
+const DS_TRIANGLE: u32 = 3;
+const DS_STAR: u32 = 4;
+
+const PT_SOLIDCOLOR: u32 = 0;
+const PT_SWIRLY: u32 = 1;
+const PT_POLKADOT: u32 = 2;
+const PT_STRIPES: u32 = 3;
+const PT_CHECKER: u32 = 4;
+const PT_CIRCEPATTERN: u32 = 5;
+const PT_NOISY: u32 = 6;
+
+const ST_NONE: u32 = 0;
+const ST_CHECKER: u32 = 1;
+const ST_POLKADOT: u32 = 2;
+const ST_STRIPED: u32 = 3;
+const ST_SPHEREPATTERN: u32 = 4;
+const ST_GYROID: u32 = 5;
+const ST_NOISY: u32 = 6;
+
+fn createFrame(fo: vec3f) -> mat3x3f {
+    let up1 = vec3f(0.,1.,0.);
+    let up2 = vec3f(0.,0.,1.);
+    let ri1 = cross(up1, fo);
+    let riFinal = normalize(step(dot(ri1,ri1), 0.)*cross(up2, fo) + ri1);
+    let upFinal = normalize(cross(fo, riFinal));
+    return mat3x3f(riFinal, upFinal, fo);
+}
 
 @compute
 @workgroup_size(4, 4, 4)
@@ -72,27 +100,48 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let brushSize = u_BrushParameters.brushSize;
         let brushMult = u_BrushParameters.brushMult;
 
-        //
-        var diff = p - brushPos;
-        diff = 2.5*norm*dot(diff,norm) + (diff - norm*dot(diff, norm));
-        let r = length(diff);
-        var falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
+        // Calculate Falloff
+        var lp = transpose(createFrame(norm)) * (p - brushPos);
+        lp.z *= 2.5;
+
+        var r = 0.; var falloff = 0.;
+        switch u_BrushParameters.drawShape {
+            case DS_SPHERE: {
+                r = length(lp);
+            }
+            case DS_CUBE: {
+                r = max(max(abs(lp.x), abs(lp.y)), abs(lp.z));
+            }
+            default: {}
+        }
+
+        // TODO: Mess with r for like noisy sculpt texture
+
+        falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 
+        // TODO: Mess with sculptAmt mult with sbf for Sculpt Texture
         let sculptAmt = (1.-f32(u_Parameters.paintMode)) * amt;
-        let colAmt = 10. * amt;
-
-        switch(u_Parameters.brushType) {
-            case 
+        // Sculpt depending on Brush Type
+        var newSculptVal = 0.;
+        switch u_BrushParameters.brushType {
+            case BT_DRAW: {
+                let curr = textureLoad(inputTexture, id, 0).r;
+                newSculptVal = clamp(curr+sculptAmt, 0.0, borderFalloff(uv));
+            }
+            case BT_TWIRL: {
+                let rp = brushPos + (rot(norm, 2.5*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
+                var ruv = (u_Parameters.bbxInvTRS * vec4f(rp, 1.)).xyz;
+                newSculptVal = textureSampleLevel(inputTexture, fieldSampler, ruv+vec3f(0.5)/f32(u_Parameters.texRes), 0.).r; 
+            }
+            default: {}
         }
-        let curr = textureLoad(inputTexture, id, 0).r;
-        let rp = brushPos + (rot(norm, 5.*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
-        var ruv = (u_Parameters.bbxInvTRS * vec4f(rp, 1.)).xyz;
-        var newVal = textureSampleLevel(inputTexture, fieldSampler, ruv+vec3f(0.5)/f32(u_Parameters.texRes), 0.).r; 
-        //var newVal = clamp(curr+sculptAmt, 0.0, borderFalloff(uv));
-        textureStore(outputTexture, id, vec4(newVal,0.0,0.0,0.0));
-
+        textureStore(outputTexture, id, vec4(newSculptVal,0.0,0.0,0.0));
+        
+        // Paint depending on Paint Texture
+        // TODO: Mess with colAmt (and the target color) for Paint Texture
+        let colAmt = 10. * max(0., amt);
         let currCol = textureLoad(inputColorTexture, id, 0);
         let newCol = mix(currCol, vec4f(u_BrushParameters.color, 1.0), colAmt);
         textureStore(outputColorTexture, id, newCol);

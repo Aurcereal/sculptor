@@ -9,7 +9,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
     parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0};
-    brushParameters = {0, .05f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f), 0};
+    brushParameters = {0, .02f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f), 0, 0, 0};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
     guiManager->AddUIFunction(std::bind(&GUIToParams::MainLoop, this));
@@ -38,33 +38,73 @@ void MarchingCubes::GUIToParams::MainLoop() {
         manager->uniformManager.UpdateParameters();
     }
 
-    const array<char*, 3> brushNames = { "Brush A", "Brush B", "Bruch C"};
-    ImGui::TextWrapped("Test text...");
-    if(ImGui::Button(selectedBrush == -1 ? "Select Brush" : brushNames[selectedBrush]))
-        ImGui::OpenPopup("select_brush_popup");
-    if(ImGui::BeginPopup("select_brush_popup")) {
-        ImGui::SeparatorText("Separator");
-        for(int i=0; i<brushNames.size(); i++) {
-            if(ImGui::Selectable(brushNames[i])) {
-                selectedBrush = i;
+    if(Button(("Brush Type: " + brushNames[brushParameters.brushType]).c_str()))
+        OpenPopup("select_brush_popup");
+    if(BeginPopup("select_brush_popup")) {
+        SeparatorText("Brush Type");
+        for(uint32 i=0; i<brushNames.size(); i++) {
+            if(Selectable(brushNames[i].c_str())) {
+                brushParameters.brushType = i;
+                manager->uniformManager.UpdateBrushParameters();
             }
         }
-        ImGui::EndPopup();
+        EndPopup();
     }
 
-    if(selectedBrush != -1) {
-        if(SliderFloat("Brush Size", &brushParameters.brushSize, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_Logarithmic))
-            manager->uniformManager.UpdateBrushParameters();
-        if(SliderFloat("Brush Power", &brushParameters.brushMult, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
-            manager->uniformManager.UpdateBrushParameters();
-        if(SliderFloat("Brush Hardness", &brushParameters.brushHardness, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
-            manager->uniformManager.UpdateBrushParameters();
-
-        array<float, 3> cols = { brushParameters.color.r, brushParameters.color.g, brushParameters.color.b };
-        if(ColorEdit3("Brush Color", cols.data())) {
-            brushParameters.color = vec3(cols[0], cols[1], cols[2]);
-            manager->uniformManager.UpdateBrushParameters();
+    if(brushParameters.brushType == 0 && CollapsingHeader("Draw Options")) {
+        Indent();
+        if(Button(("Brush Shape: " + drawShapes[brushParameters.drawShape]).c_str()))
+            OpenPopup("select_draw_shape_popup");
+        if(BeginPopup("select_draw_shape_popup")) {
+            SeparatorText("Separator");
+            for(uint32 i=0; i<drawShapes.size(); i++) {
+                if(Selectable(drawShapes[i].c_str())) {
+                    brushParameters.drawShape = i;
+                    manager->uniformManager.UpdateBrushParameters();
+                }
+            }
+            EndPopup();
         }
+
+        if(Button(("Paint Texture: " + paintTextures[brushParameters.paintTexture]).c_str()))
+            OpenPopup("select_paint_texture_popup");
+        if(BeginPopup("select_paint_texture_popup")) {
+            SeparatorText("Separator");
+            for(uint32 i=0; i<paintTextures.size(); i++) {
+                if(Selectable(paintTextures[i].c_str())) {
+                    brushParameters.paintTexture = i;
+                    manager->uniformManager.UpdateBrushParameters();
+                }
+            }
+            EndPopup();
+        }
+
+        if(Button(("Sculpt Texture: " + sculptTextures[brushParameters.sculptTexture]).c_str()))
+            OpenPopup("select_sculpt_texture_popup");
+        if(BeginPopup("select_sculpt_texture_popup")) {
+            SeparatorText("Separator");
+            for(uint32 i=0; i<sculptTextures.size(); i++) {
+                if(Selectable(sculptTextures[i].c_str())) {
+                    brushParameters.sculptTexture = i;
+                    manager->uniformManager.UpdateBrushParameters();
+                }
+            }
+            EndPopup();
+        }
+        Unindent();
+    }
+
+    if(SliderFloat("Brush Size", &brushParameters.brushSize, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_Logarithmic))
+        manager->uniformManager.UpdateBrushParameters();
+    if(SliderFloat("Brush Power", &brushParameters.brushMult, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
+        manager->uniformManager.UpdateBrushParameters();
+    if(SliderFloat("Brush Hardness", &brushParameters.brushHardness, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
+        manager->uniformManager.UpdateBrushParameters();
+
+    array<float, 3> cols = { brushParameters.color.r, brushParameters.color.g, brushParameters.color.b };
+    if(ColorEdit3("Brush Color", cols.data())) {
+        brushParameters.color = vec3(cols[0], cols[1], cols[2]);
+        manager->uniformManager.UpdateBrushParameters();
     }
 
     ImGui::SeparatorText("Operations");
@@ -97,16 +137,16 @@ void MarchingCubes::GUIToParams::MainLoop() {
         OpenPopup("reset_object_popup");
     if(BeginPopup("reset_object_popup")) {
         SeparatorText("Separator");
-        for(int i=0; i<manager->fieldEditor.initializeShapeObjects.size(); i++) {
-            if(Selectable(manager->fieldEditor.initializeShapeObjects[i].c_str())) {
-                switch(static_cast<FieldEditor::InitializeShapeObjects>(i)) {
-                    case FieldEditor::ISPHERE:
+        for(int i=0; i<initializeShapeObjects.size(); i++) {
+            if(Selectable(initializeShapeObjects[i].c_str())) {
+                switch(static_cast<InitializeShapeObjects>(i)) {
+                    case ISPHERE:
                         manager->fieldEditor.GenerateSphereField();
                         break;
-                    case FieldEditor::ICUBE:
+                    case ICUBE:
                         manager->fieldEditor.GenerateCubeField();
                         break;
-                    case FieldEditor::IPLANE:
+                    case IPLANE:
                         manager->fieldEditor.GeneratePlaneField();
                         break;
                 }
