@@ -276,7 +276,7 @@ bool Application::Initialize() {
         std::cout << std::endl;
         };
     RequiredLimits limits = GetRequiredLimits(adapter);
-    deviceDesc.requiredLimits = nullptr; //&limits; // Require at least these capabilities
+    deviceDesc.requiredLimits = &limits; // Require at least these capabilities
     device = requestDeviceSync(adapter, &deviceDesc);
     std::cout << "Got device: " << device << std::endl;
     auto onDeviceError = [](WGPUErrorType type, char const* message, void* /* pUserData */) {
@@ -473,14 +473,40 @@ RequiredLimits Application::GetRequiredLimits(Adapter adapter) const {
     SupportedLimits supportedLimits;
     adapter.getLimits(&supportedLimits);
 
+    // https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html
     RequiredLimits requiredLimits = Default;
-    requiredLimits.limits.minStorageBufferOffsetAlignment = 32;
-    requiredLimits.limits.maxVertexAttributes = 2; // Require a max of 1
-    requiredLimits.limits.maxVertexBuffers = 1;
-    requiredLimits.limits.maxBufferSize = 6 * 6 * sizeof(float);
-    requiredLimits.limits.maxVertexBufferArrayStride = 5 * sizeof(float);
-    requiredLimits.limits.maxInterStageShaderComponents = 3;
-    // We can only draw 2 triangles with these limits..
-
+    requiredLimits.limits.maxBindGroups = 4;
+    requiredLimits.limits.maxBindGroupsPlusVertexBuffers = 24;
+    requiredLimits.limits.maxBindingsPerBindGroup = 1000;
+    requiredLimits.limits.maxBufferSize = 2147483648;
+    requiredLimits.limits.maxColorAttachmentBytesPerSample = 128;
+    requiredLimits.limits.maxColorAttachments = 8;
+    requiredLimits.limits.maxComputeInvocationsPerWorkgroup = 1024;
+    requiredLimits.limits.maxComputeWorkgroupSizeX = 1024;
+    requiredLimits.limits.maxComputeWorkgroupSizeY = 1024;
+    requiredLimits.limits.maxComputeWorkgroupSizeZ = 64;
+    requiredLimits.limits.maxComputeWorkgroupsPerDimension = 65535;
+    requiredLimits.limits.maxComputeWorkgroupStorageSize = 32768;
+    requiredLimits.limits.maxDynamicStorageBuffersPerPipelineLayout = 8;
+    requiredLimits.limits.maxDynamicUniformBuffersPerPipelineLayout = 10;
+    requiredLimits.limits.maxInterStageShaderComponents = 28;
+    requiredLimits.limits.maxSampledTexturesPerShaderStage = 16;
+    requiredLimits.limits.maxSamplersPerShaderStage = 16;
+    requiredLimits.limits.maxStorageBufferBindingSize = 2147483644;
+    requiredLimits.limits.maxStorageBuffersPerShaderStage = 10;
+    requiredLimits.limits.maxStorageTexturesPerShaderStage = 8;
+    requiredLimits.limits.maxTextureArrayLayers = 2048;
+    requiredLimits.limits.maxTextureDimension1D = 16384;
+    requiredLimits.limits.maxTextureDimension2D = 16384;
+    requiredLimits.limits.maxTextureDimension3D = 2048;
+    requiredLimits.limits.maxUniformBufferBindingSize = 65536;
+    requiredLimits.limits.maxUniformBuffersPerShaderStage = 12;
+    requiredLimits.limits.maxVertexAttributes = 30;
+    requiredLimits.limits.maxVertexBufferArrayStride = 2048;
+    requiredLimits.limits.maxVertexBuffers = 8;
+    requiredLimits.limits.minStorageBufferOffsetAlignment = 256;
+    requiredLimits.limits.minUniformBufferOffsetAlignment = 256;
+    //requiredLimits.limits.minStorageBufferOffsetAlignment = 32;
+    
     return requiredLimits;
 }

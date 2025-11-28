@@ -126,9 +126,10 @@ namespace MarchingCubes {
         const array<string, 7> paintTextures = {
             "Solid Color", "Swirly", "Polka Dot", "Stripes", "Checker", "Circle Pattern", "Noisy"
         };
-        const array<string, 7> sculptTextures = { // Usually booleans
-            "None", "Checker", "Polka Dot", "Striped", "Sphere Pattern", "Gyroid", 
-            "Noisy" // This one should make the brush itself be noisy towards the edge, an r offset
+        const array<string, 8> sculptTextures = { // Usually booleans
+            "None", "Checker", "Polka Dot", "Sphere Pattern", "Gyroid", 
+            "Noisy", // This one should make the brush itself be noisy towards the edge, an r offset
+            "Comb", "Cube Comb"
         };
 
         const array<string, 3> initializeShapeObjects = {
@@ -218,8 +219,8 @@ namespace MarchingCubes {
 
         ComputeShader meshGenerationShader;
 
-        const uint32_t maxVertexCount = 4194304;
-        const uint32_t maxTriangleCount = 2097152;
+        const uint32_t maxVertexCount = 33554432; // Almost a GB of Mesh Data..
+        const uint32_t maxTriangleCount = 16777216;
 
         void ResetCountBuffer();
     };

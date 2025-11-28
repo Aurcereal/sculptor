@@ -343,13 +343,18 @@ fn uvToWorldSpaceNorm(nor: vec3f) -> vec3f {
     return normalize((u_MarchingCubesParameters.bbxInverseTranspose * vec4f(nor, 0.0)).xyz); // mat3x3f(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0)
 }
 
+fn sampleField(p: vec3f) -> f32 {
+    return textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r;
+    //tanh((textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r - 0.5) * 4.)*.5+.5;
+}
+
 fn sampleNormal(pos: vec3f) -> vec3f {
     // -Gradient since our inside is positive
     let eps = vec2f(0.01, 0.0);
     return -normalize(vec3f(
-        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.xyy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.xyy, 0.0).r,
-        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.yxy, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.yxy, 0.0).r,
-        textureSampleLevel(fieldTexture, fieldSampler, pos+eps.yyx, 0.0).r-textureSampleLevel(fieldTexture, fieldSampler, pos-eps.yyx, 0.0).r
+        sampleField(pos+eps.xyy)-sampleField(pos-eps.xyy),
+        sampleField(pos+eps.yxy)-sampleField(pos-eps.yxy),
+        sampleField(pos+eps.yyx)-sampleField(pos-eps.yyx)
     ));
 }
 
@@ -371,7 +376,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     var config: u32 = 0;
     for(var i: i32 = 7; i>=0; i=i-1) {
         let currUV = uv + cubeSize*cubePointsArray[i];
-        let sample = textureSampleLevel(fieldTexture, fieldSampler, currUV, 0.0).r;
+        let sample = sampleField(currUV);
         let sampleIsInGeometry = u32(step(threshold, sample));
         cubeSamples[i] = sample;
 

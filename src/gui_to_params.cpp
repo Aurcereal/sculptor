@@ -179,7 +179,7 @@ void MarchingCubes::GUIToParams::MainLoop() {
     }
 
     int mr = static_cast<int>(parameters.marchingCubesResolution);
-    if(ImGui::SliderInt("Marching Cubes Resolution", &mr, 8, 64)) {
+    if(ImGui::SliderInt("Marching Cubes Resolution", &mr, 8, 112)) {
         std::cout << "res chang" << std::endl;
         parameters.marchingCubesResolution = static_cast<uint32_t>(mr);
         manager->uniformManager.UpdateParameters();

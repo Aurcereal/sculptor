@@ -31,24 +31,6 @@ struct BrushParameters {
 };
 @group(0) @binding(7) var<uniform> u_BrushParameters: BrushParameters;
 
-fn borderFalloff(uv: vec3f) -> f32 {
-    let ds = vec3f(0.5) - abs(uv-vec3f(0.5));
-    let d = min(min(ds.x, ds.y), ds.z);
-    return smoothstep(0.01, 0.1, d);
-}
-
-fn rot(v: vec3f, o: f32) -> mat4x4f {
-    // https://en.wikipedia.org/wiki/Rotation_matrix
-    let cosAngle = cos(o);
-    let sinAngle = sin(o);
-    let oneMinusCosAngle = 1.-cosAngle;
-    return mat4x4f(
-        vec4f(v[0]*v[0]*oneMinusCosAngle+cosAngle, v[0]*v[1]*oneMinusCosAngle+v[2]*sinAngle, v[0]*v[2]*oneMinusCosAngle-v[1]*sinAngle, 0.),
-        vec4f(v[0]*v[1]*oneMinusCosAngle-v[2]*sinAngle, v[1]*v[1]*oneMinusCosAngle+cosAngle, v[1]*v[2]*oneMinusCosAngle+v[0]*sinAngle, 0.),
-        vec4f(v[0]*v[2]*oneMinusCosAngle+v[1]*sinAngle, v[1]*v[2]*oneMinusCosAngle-v[0]*sinAngle, v[2]*v[2]*oneMinusCosAngle+cosAngle, 0.),
-        vec4f(0., 0., 0., 1.)
-        );
-}
 
 const BT_DRAW: u32 = 0;
 const BT_TWIRL: u32 = 1;
@@ -70,10 +52,33 @@ const PT_NOISY: u32 = 6;
 const ST_NONE: u32 = 0;
 const ST_CHECKER: u32 = 1;
 const ST_POLKADOT: u32 = 2;
-const ST_STRIPED: u32 = 3;
-const ST_SPHEREPATTERN: u32 = 4;
-const ST_GYROID: u32 = 5;
-const ST_NOISY: u32 = 6;
+const ST_SPHEREPATTERN: u32 = 3;
+const ST_GYROID: u32 = 4;
+const ST_NOISY: u32 = 5;
+const ST_COMB: u32 = 6;
+const ST_CUBECOMB: u32 = 7;
+
+fn fmod(x: f32, y: f32) -> f32 { return x - y * floor(x / y); }
+fn vmod(x: vec3f, y: vec3f) -> vec3f { return x - y * floor(x / y); }
+
+fn borderFalloff(uv: vec3f) -> f32 {
+    let ds = vec3f(0.5) - abs(uv-vec3f(0.5));
+    let d = min(min(ds.x, ds.y), ds.z);
+    return smoothstep(0.01, 0.1, d);
+}
+
+fn rot(v: vec3f, o: f32) -> mat4x4f {
+    // https://en.wikipedia.org/wiki/Rotation_matrix
+    let cosAngle = cos(o);
+    let sinAngle = sin(o);
+    let oneMinusCosAngle = 1.-cosAngle;
+    return mat4x4f(
+        vec4f(v[0]*v[0]*oneMinusCosAngle+cosAngle, v[0]*v[1]*oneMinusCosAngle+v[2]*sinAngle, v[0]*v[2]*oneMinusCosAngle-v[1]*sinAngle, 0.),
+        vec4f(v[0]*v[1]*oneMinusCosAngle-v[2]*sinAngle, v[1]*v[1]*oneMinusCosAngle+cosAngle, v[1]*v[2]*oneMinusCosAngle+v[0]*sinAngle, 0.),
+        vec4f(v[0]*v[2]*oneMinusCosAngle+v[1]*sinAngle, v[1]*v[2]*oneMinusCosAngle-v[0]*sinAngle, v[2]*v[2]*oneMinusCosAngle+cosAngle, 0.),
+        vec4f(0., 0., 0., 1.)
+        );
+}
 
 fn createFrame(fo: vec3f) -> mat3x3f {
     let up1 = vec3f(0.,1.,0.);
@@ -82,6 +87,35 @@ fn createFrame(fo: vec3f) -> mat3x3f {
     let riFinal = normalize(step(dot(ri1,ri1), 0.)*cross(up2, fo) + ri1);
     let upFinal = normalize(cross(fo, riFinal));
     return mat3x3f(riFinal, upFinal, fo);
+}
+
+fn sdBox(p: vec3f, dim: vec3f) -> f32 {
+    let lp = abs(p) - dim*.5;
+    let ds = max(lp.x, max(lp.y, lp.z));
+    let s = sqrt(max(lp.x, 0.)*lp.x + max(lp.y, 0.)*lp.y + max(lp.z, 0.)*lp.z);
+    return step(s, 0.) * ds + s;
+}
+
+fn intersectSculptTexture(p: vec3f) -> f32 {
+    switch u_BrushParameters.sculptTexture {
+        case ST_NONE, ST_NOISY, default: {
+            return 1.;
+        }
+        case ST_CHECKER: {
+            let size = 0.2;
+            let id = floor(p/size);
+            let parity = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
+            return parity;
+        }
+        case ST_CUBECOMB: {
+            let size = 0.2;
+            let lp = vmod(p, vec3f(size))-vec3f(size*.5);
+            return u_Parameters.marchingCubesThreshold+sdBox(lp, vec3f(size*.9));
+        }
+        case ST_COMB: {
+            return step(sin(p.x*50.), 0.); // dot w (1,1,1)/sqrt(3)
+        }
+    }
 }
 
 @compute
@@ -108,7 +142,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             lp.z *= 2.5;
         }
         
-
+        // Draw Shape
         var r = 0.; var falloff = 0.;
         switch u_BrushParameters.drawShape {
             case DS_SPHERE: {
@@ -126,14 +160,13 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 
-        // TODO: Mess with sculptAmt mult with sbf for Sculpt Texture
-        let sculptAmt = (1.-f32(u_Parameters.paintMode)) * amt;
+        let sculptAmt = intersectSculptTexture(p) * (1.-f32(u_Parameters.paintMode)) * amt;
         // Sculpt depending on Brush Type
         var newSculptVal = 0.;
         switch u_BrushParameters.brushType {
             case BT_DRAW: {
                 let curr = textureLoad(inputTexture, id, 0).r;
-                newSculptVal = clamp(curr+sculptAmt, 0.0, borderFalloff(uv));
+                newSculptVal = clamp(curr+sculptAmt, -0.5, borderFalloff(uv));
             }
             case BT_TWIRL: {
                 let rp = brushPos + (rot(norm, 2.5*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
@@ -151,7 +184,8 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let newCol = mix(currCol, vec4f(u_BrushParameters.color, 1.0), colAmt);
         textureStore(outputColorTexture, id, newCol);
     } else {
-        textureStore(outputTexture, id, textureLoad(inputTexture, id, 0)); // TODO: Massively inefficient to recalculate everytime when it's just a double passthrough when we're not clicking
+        // Massively inefficient passthrough (why passthrough at all when not clicking?)
+        textureStore(outputTexture, id, textureLoad(inputTexture, id, 0));
         textureStore(outputColorTexture, id, textureLoad(inputColorTexture, id, 0));
     }
 }
