@@ -45,6 +45,12 @@ void MarchingCubes::GUIToParams::MainLoop() {
         for(uint32 i=0; i<brushNames.size(); i++) {
             if(Selectable(brushNames[i].c_str())) {
                 brushParameters.brushType = i;
+                if(i == 1) {
+                    // Reset Draw Settings
+                    brushParameters.drawShape = 0;
+                    brushParameters.paintTexture = 0;
+                    brushParameters.sculptTexture = 0; 
+                }
                 manager->uniformManager.UpdateBrushParameters();
             }
         }

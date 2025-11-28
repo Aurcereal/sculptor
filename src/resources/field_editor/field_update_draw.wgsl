@@ -1,8 +1,9 @@
 @group(0) @binding(0) var inputTexture: texture_3d<f32>;
 @group(0) @binding(1) var inputColorTexture: texture_3d<f32>;
 @group(0) @binding(2) var fieldSampler: sampler;
-@group(0) @binding(3) var outputTexture: texture_storage_3d<r32float,write>;
-@group(0) @binding(4) var outputColorTexture: texture_storage_3d<rgba8unorm,write>;
+@group(0) @binding(3) var fieldColorSampler: sampler;
+@group(0) @binding(4) var outputTexture: texture_storage_3d<r32float,write>;
+@group(0) @binding(5) var outputColorTexture: texture_storage_3d<rgba8unorm,write>;
 
 struct Parameters {
     texRes : u32,
@@ -15,8 +16,8 @@ struct Parameters {
     mirrorX : u32,
     paintMode : u32
 };
-@group(0) @binding(5) var<uniform> u_Parameters : Parameters;
-@group(0) @binding(6) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
+@group(0) @binding(6) var<uniform> u_Parameters : Parameters;
+@group(0) @binding(7) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
 
 struct BrushParameters {
     brushType : u32,
@@ -29,7 +30,7 @@ struct BrushParameters {
     sculptTexture : u32,
     brushFollowNormal : u32
 };
-@group(0) @binding(7) var<uniform> u_BrushParameters: BrushParameters;
+@group(0) @binding(8) var<uniform> u_BrushParameters: BrushParameters;
 
 
 const BT_DRAW: u32 = 0;
@@ -144,10 +145,12 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let pos = intersectionBuffer[0];
     if(pos.a > 0.1) {
         var uv = (vec3f(id.xyz)/f32(u_Parameters.texRes));
+        var mirrorAlignment = 1.;
         if(bool(u_Parameters.mirrorX)) {
             let mirrorDir = step(0.5, (u_Parameters.bbxInvTRS * pos).x)*2.-1.;
             uv.x = 0.5+mirrorDir*abs(uv.x-0.5);
-        } // TODO: fix mirror twirl (bring uv back after twirling)
+            mirrorAlignment = mirrorDir*sign(uv.x-0.5);
+        }
         var p = (u_Parameters.bbxTRS * vec4f(uv, 1.0)).xyz;
 
         let norm = intersectionBuffer[1].xyz;
@@ -181,28 +184,36 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         let amt = brushMult * falloff;
 
         let sculptAmt = intersectSculptTexture(p) * (1.-f32(u_Parameters.paintMode)) * amt;
-        // Sculpt depending on Brush Type
         var newSculptVal = 0.;
+        var newCol = vec4f(0.);
         switch u_BrushParameters.brushType {
             case BT_DRAW: {
                 let curr = textureLoad(inputTexture, id, 0).r;
                 newSculptVal = clamp(curr+sculptAmt, -0.5, borderFalloff(uv));
+
+                // Paint depending on Paint Texture
+                // TODO: Mess with colAmt (and the target color) for Paint Texture
+                let colAmt = 10. * max(0., amt);
+                let currCol = textureLoad(inputColorTexture, id, 0);
+                newCol = mix(currCol, vec4f(u_BrushParameters.color, 1.0), colAmt);
             }
             case BT_TWIRL: {
                 let rp = brushPos + (rot(norm, 2.5*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
                 var ruv = (u_Parameters.bbxInvTRS * vec4f(rp, 1.)).xyz;
+                ruv.x = 0.5+mirrorAlignment*(ruv.x-0.5);
                 newSculptVal = textureSampleLevel(inputTexture, fieldSampler, ruv+vec3f(0.5)/f32(u_Parameters.texRes), 0.).r; 
+
+                let rpCol = brushPos + (rot(norm, 2.5*amt) * vec4f(p-brushPos, 1.)).xyz;
+                var ruvCol = (u_Parameters.bbxInvTRS * vec4f(rpCol, 1.)).xyz;
+                ruvCol.x = 0.5+mirrorAlignment*(ruvCol.x-0.5);
+                newCol = textureSampleLevel(inputColorTexture, fieldColorSampler, ruvCol+vec3f(0.5)/f32(u_Parameters.texRes), 0.);
             }
             default: {}
         }
         textureStore(outputTexture, id, vec4(newSculptVal,0.0,0.0,0.0));
-        
-        // Paint depending on Paint Texture
-        // TODO: Mess with colAmt (and the target color) for Paint Texture
-        let colAmt = 10. * max(0., amt);
-        let currCol = textureLoad(inputColorTexture, id, 0);
-        let newCol = mix(currCol, vec4f(u_BrushParameters.color, 1.0), colAmt);
         textureStore(outputColorTexture, id, newCol);
+        
+        
     } else {
         // Massively inefficient passthrough (why passthrough at all when not clicking?)
         textureStore(outputTexture, id, textureLoad(inputTexture, id, 0));
