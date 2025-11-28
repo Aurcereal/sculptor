@@ -32,10 +32,12 @@ void MarchingCubes::GUIToParams::MainLoop() {
         manager->uniformManager.UpdateParameters();
     }
 
-    bool paintMode = manager->guiToParams.parameters.paintMode == 1;
+    bool paintMode = parameters.paintMode == 1;
     if(Checkbox("Paint Mode", &paintMode)) {
-        manager->guiToParams.parameters.paintMode = paintMode ? 1 : 0;
+        parameters.paintMode = paintMode ? 1 : 0;
+        brushParameters.brushHardness = 0.0f;
         manager->uniformManager.UpdateParameters();
+        manager->uniformManager.UpdateBrushParameters();
     }
 
     if(Button(("Brush Type: " + brushNames[brushParameters.brushType]).c_str()))
@@ -110,8 +112,10 @@ void MarchingCubes::GUIToParams::MainLoop() {
         manager->uniformManager.UpdateBrushParameters();
     if(SliderFloat("Brush Power", &brushParameters.brushMult, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
         manager->uniformManager.UpdateBrushParameters();
-    if(SliderFloat("Brush Hardness", &brushParameters.brushHardness, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
-        manager->uniformManager.UpdateBrushParameters();
+    if(parameters.paintMode) {
+        if(SliderFloat("Brush Hardness", &brushParameters.brushHardness, 0.001f, 1.0f, "%.4f", ImGuiSliderFlags_Logarithmic))
+            manager->uniformManager.UpdateBrushParameters();
+    }
 
     array<float, 3> cols = { brushParameters.color.r, brushParameters.color.g, brushParameters.color.b };
     if(ColorEdit3("Brush Color", cols.data())) {

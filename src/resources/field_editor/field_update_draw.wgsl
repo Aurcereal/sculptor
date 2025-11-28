@@ -59,6 +59,8 @@ const ST_NOISY: u32 = 5;
 const ST_COMB: u32 = 6;
 const ST_CUBECOMB: u32 = 7;
 
+const PI: f32 = 3.141592;
+
 fn fmod(x: f32, y: f32) -> f32 { return x - y * floor(x / y); }
 fn vmod(x: vec3f, y: vec3f) -> vec3f { return x - y * floor(x / y); }
 
@@ -88,6 +90,11 @@ fn createFrame(fo: vec3f) -> mat3x3f {
     let riFinal = normalize(step(dot(ri1,ri1), 0.)*cross(up2, fo) + ri1);
     let upFinal = normalize(cross(fo, riFinal));
     return mat3x3f(riFinal, upFinal, fo);
+}
+
+fn toSpherical(p: vec3f) -> vec3f {
+    let r = length(p);
+    return vec3f(r, atan2(p.z, p.x), asin(p.y/r));
 }
 
 fn sdBox(p: vec3f, dim: vec3f) -> f32 {
@@ -138,6 +145,47 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
         }
         case ST_COMB: {
             return step(sin(dot(p,vec3f(1.)/sqrt(3.))*50.), 0.);
+        }
+    }
+}
+
+// const PT_SOLIDCOLOR: u32 = 0;
+// const PT_SWIRLY: u32 = 1;
+// const PT_POLKADOT: u32 = 2;
+// const PT_STRIPES: u32 = 3;
+// const PT_CHECKER: u32 = 4;
+// const PT_CIRCEPATTERN: u32 = 5;
+// const PT_NOISY: u32 = 6;
+
+fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
+    switch u_BrushParameters.paintTexture {
+        case default, PT_SOLIDCOLOR: {
+            return vec4f(u_BrushParameters.color, currAmt);
+        }
+        case PT_SWIRLY: {
+            var sph = toSpherical(p);
+            let repSize = 0.12;
+            sph.x += 3.*repSize*(sph.y+sph.z)/PI;
+            let stripeFac = 0.5;
+            let lr = abs(fmod(sph.x, repSize)-repSize*.5);
+            let dist = lr-repSize*.5*stripeFac;
+            let exists = step(dist, 0.);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
+            else { return vec4f(u_BrushParameters.color+exists*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+        }
+        case PT_POLKADOT: {
+            let size = 0.2;
+            let lp = vmod(p, vec3f(size))-vec3f(size*.5);
+            let exists = step(length(lp)-.3*size, 0.);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
+            else { return vec4f(u_BrushParameters.color+exists*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+        }
+        case PT_CHECKER: {
+            let size = 0.2;
+            let id = floor(p/size);
+            let exists = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
+            else { return vec4f(u_BrushParameters.color+exists*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
     }
 }
@@ -194,11 +242,10 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                 let curr = textureLoad(inputTexture, id, 0).r;
                 newSculptVal = clamp(curr+sculptAmt, -0.5, borderFalloff(uv));
 
-                // Paint depending on Paint Texture
-                // TODO: Mess with colAmt (and the target color) for Paint Texture
                 let colAmt = 10. * max(0., amt);
+                let colChangeInfo = getPaintColor(p, colAmt);
                 let currCol = textureLoad(inputColorTexture, id, 0);
-                newCol = mix(currCol, vec4f(u_BrushParameters.color, 1.0), colAmt);
+                newCol = mix(currCol, vec4f(colChangeInfo.rgb, 1.0), colChangeInfo.a);
             }
             case BT_TWIRL: {
                 let rp = brushPos + (rot(norm, 2.5*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
