@@ -47,7 +47,7 @@ fn rotX(o: f32) -> mat3x3f {
     return mat3x3f(1., 0., 0., 0., cos(o), sin(o), 0., -sin(o), cos(o));
 }
 
-// https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
+// START https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
 fn mod289(x: vec4f) -> vec4f { return x - floor(x * (1. / 289.)) * 289.; }
 fn perm4(x: vec4f) -> vec4f { return mod289(((x * 34.) + 1.) * x); }
 fn noise(p: vec3f) -> f32 {
@@ -71,6 +71,53 @@ fn noise(p: vec3f) -> f32 {
 
     return o4.y * d.y + o4.x * (1. - d.y);
 }
+// END
+
+// START SDFs taken From IQ
+fn sdEquilateralTriangle(pi: vec2f, r: f32) -> f32
+{
+    var p = pi;
+    let k = sqrt(3.0);
+    p.x = abs(p.x) - r;
+    p.y = p.y + r/k;
+    if( p.x+k*p.y>0.0 ) { p = vec2f(p.x-k*p.y,-k*p.x-p.y)/2.0; }
+    p.x -= clamp( p.x, -2.0*r, 0.0 );
+    return -length(p)*sign(p.y);
+}
+fn sdPentagram(pi: vec2f, r: f32) -> f32
+{
+    let k1x = 0.809016994; // cos(π/ 5) = ¼(√5+1)
+    let k2x = 0.309016994; // sin(π/10) = ¼(√5-1)
+    let k1y = 0.587785252; // sin(π/ 5) = ¼√(10-2√5)
+    let k2y = 0.951056516; // cos(π/10) = ¼√(10+2√5)
+    let k1z = 0.726542528; // tan(π/ 5) = √(5-2√5)
+    let v1  = vec2f( k1x,-k1y);
+    let v2  = vec2f(-k1x,-k1y);
+    let v3  = vec2f( k2x,-k2y);
+    
+    var p = pi;
+    p.x = abs(p.x);
+    p -= 2.0*max(dot(v1,p),0.0)*v1;
+    p -= 2.0*max(dot(v2,p),0.0)*v2;
+    p.x = abs(p.x);
+    p.y -= r;
+    return length(p-v3*clamp(dot(p,v3),0.0,k1z*r))
+           * sign(p.y*v3.x-p.x*v3.y);
+}
+fn sdCone(p: vec3f, dim: vec2f) -> f32
+{
+    let q = vec2f(dim.x, -dim.y);
+        
+    var w = vec2f( length(p.xz), p.y );
+    w.y -= dim.y*.5;
+    let a = w - q*clamp( dot(w,q)/dot(q,q), 0.0, 1.0 );
+    let b = w - q*vec2f( clamp( w.x/q.x, 0.0, 1.0 ), 1.0 );
+    let k = sign( q.y );
+    let d = min(dot( a, a ),dot(b, b));
+    let s = max( k*(w.x*q.y-w.y*q.x),k*(w.y-q.y)  );
+    return sqrt(d)*sign(s);
+}
+// END SDFs taken from IQ
 
 fn fbm(p: vec3f) -> f32 {
     let iterations = 4u;
@@ -211,14 +258,6 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
     }
 }
 
-// const PT_SOLIDCOLOR: u32 = 0;
-// const PT_SWIRLY: u32 = 1;
-// const PT_POLKADOT: u32 = 2;
-// const PT_STRIPES: u32 = 3;
-// const PT_CHECKER: u32 = 4;
-// const PT_CIRCEPATTERN: u32 = 5;
-// const PT_NOISY: u32 = 6;
-
 fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
     switch u_BrushParameters.paintTexture {
         case default, PT_SOLIDCOLOR: {
@@ -305,22 +344,35 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         }
         
         // Draw Shape
-        var r = 0.; var falloff = 0.;
+        var r = 0.; if(u_BrushParameters.sculptTexture == ST_NOISY) { r -= .2*fbm(p*.9); }
+        var falloff = 0.;
         switch u_BrushParameters.drawShape {
             case DS_SPHERE: {
-                r = length(lp);
+                r += length(lp);
+                falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
             }
             case DS_CUBE: {
-                r = max(max(abs(lp.x), abs(lp.y)), abs(lp.z));
+                r += max(max(abs(lp.x), abs(lp.y)), abs(lp.z));
+                falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
+            }
+            case DS_CONE: {
+                r += -(u_Parameters.marchingCubesThreshold-4.*sdCone(lp.xzy, brushSize*vec2f(0.5, 1.))); // min(1., .. w/2. on field scale)
+                falloff = (1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r)); // just max(0,)
+            }
+            case DS_TRIANGLE: {
+
+            }
+            case DS_STAR: {
+
             }
             default: {}
         }
 
-        if(u_BrushParameters.sculptTexture == ST_NOISY) {
-            r -= 0.2*fbm(p*.9);
-        }
+        // if(u_BrushParameters.sculptTexture == ST_NOISY) {
+        //     r -= 0.2*fbm(p*.9);
+        // }
 
-        falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
+        //falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 
