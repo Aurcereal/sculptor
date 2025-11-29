@@ -333,8 +333,8 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         var mirrorAlignment = 1.;
         if(bool(u_Parameters.mirrorX)) {
             let mirrorDir = step(0.5, (u_Parameters.bbxInvTRS * pos).x)*2.-1.;
-            uv.x = 0.5+mirrorDir*abs(uv.x-0.5);
             mirrorAlignment = mirrorDir*sign(uv.x-0.5);
+            uv.x = 0.5+mirrorDir*abs(uv.x-0.5);
         }
         var p = (u_Parameters.bbxTRS * vec4f(uv, 1.0)).xyz;
 
