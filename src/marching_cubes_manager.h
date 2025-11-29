@@ -126,10 +126,10 @@ namespace MarchingCubes {
         const array<string, 7> paintTextures = {
             "Solid Color", "Swirly", "Polka Dot", "Stripes", "Checker", "Circle Pattern", "Noisy"
         };
-        const array<string, 8> sculptTextures = { // Usually booleans
+        const array<string, 9> sculptTextures = { // Usually booleans
             "None", "Checker", "Polka Dot", "Sphere Pattern", "Gyroid", 
             "Noisy", // This one should make the brush itself be noisy towards the edge, an r offset
-            "Comb", "Cube Comb"
+            "Comb", "Cube Comb", "Bumpy"
         };
 
         const array<string, 4> initializeShapeObjects = {

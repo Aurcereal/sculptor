@@ -167,6 +167,7 @@ const ST_GYROID: u32 = 4;
 const ST_NOISY: u32 = 5;
 const ST_COMB: u32 = 6;
 const ST_CUBECOMB: u32 = 7;
+const ST_BUMPY: u32 = 8;
 
 const PI: f32 = 3.141592;
 
@@ -225,9 +226,9 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             return parity;
         }
         case ST_POLKADOT: {
-            let size = 0.1;
+            let size = 0.25;
             let lp = vmod(p, vec3f(size))-vec3f(size*.5);
-            return (length(lp)-(.3*size));
+            return u_Parameters.marchingCubesThreshold-2.*(length(lp)-(.1*size));
         }
         case ST_SPHEREPATTERN: {
             let size = 0.5;
@@ -254,6 +255,11 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
         }
         case ST_COMB: {
             return step(sin(dot(p,vec3f(1.)/sqrt(3.))*50.), 0.);
+        }
+        case ST_BUMPY: {
+            let size = 0.1;
+            let lp = vmod(p, vec3f(size))-vec3f(size*.5);
+            return (length(lp)-(.3*size));
         }
     }
 }
