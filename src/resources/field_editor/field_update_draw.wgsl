@@ -32,6 +32,68 @@ struct BrushParameters {
 };
 @group(0) @binding(8) var<uniform> u_BrushParameters: BrushParameters;
 
+fn hash31(p3: vec3f) -> f32 // From https://www.shadertoy.com/view/4djSRW
+{
+	var p3v  = fract(p3+vec3f(100.) * .1031);
+    p3v += dot(p3, p3v.zyx + 31.32);
+    return fract((p3v.x + p3v.y) * p3v.z);
+}
+
+fn rotZ(o: f32) -> mat3x3f {
+    return mat3x3f(cos(o), sin(o), 0., -sin(o), cos(o), 0., 0., 0., 1.);
+}
+
+fn rotX(o: f32) -> mat3x3f {
+    return mat3x3f(1., 0., 0., 0., cos(o), sin(o), 0., -sin(o), cos(o));
+}
+
+// https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
+fn mod289(x: vec4f) -> vec4f { return x - floor(x * (1. / 289.)) * 289.; }
+fn perm4(x: vec4f) -> vec4f { return mod289(((x * 34.) + 1.) * x); }
+fn noise(p: vec3f) -> f32 {
+    let a = floor(p);
+    var d: vec3f = p - a;
+    d = d * d * (3. - 2. * d);
+
+    let b = a.xxyy + vec4f(0., 1., 0., 1.);
+    let k1 = perm4(b.xyxy);
+    let k2 = perm4(k1.xyxy + b.zzww);
+
+    let c = k2 + a.zzzz;
+    let k3 = perm4(c);
+    let k4 = perm4(c + 1.);
+
+    let o1 = fract(k3 * (1. / 41.));
+    let o2 = fract(k4 * (1. / 41.));
+
+    let o3 = o2 * d.z + o1 * (1. - d.z);
+    let o4 = o3.yw * d.x + o3.xz * (1. - d.x);
+
+    return o4.y * d.y + o4.x * (1. - d.y);
+}
+
+fn fbm(p: vec3f) -> f32 {
+    let iterations = 4u;
+    let rot = rotX(32.53) * rotZ(18.4) * rotX(41.2);
+
+    let scaleMult = 2.;
+    let decay = .5;
+    
+    var sum = 0.;
+    var currMult = .5;
+
+    var q = 5.*p;
+    for(var i: u32=0; i<iterations; i=i+1) {
+        sum += noise(q)*currMult;
+
+        q *= scaleMult;
+        q += vec3f(13.513,591.,219.);
+        q = rot * q;
+        currMult *= decay;
+    }
+
+    return sum;
+}
 
 const BT_DRAW: u32 = 0;
 const BT_TWIRL: u32 = 1;
@@ -47,7 +109,7 @@ const PT_SWIRLY: u32 = 1;
 const PT_POLKADOT: u32 = 2;
 const PT_STRIPES: u32 = 3;
 const PT_CHECKER: u32 = 4;
-const PT_CIRCEPATTERN: u32 = 5;
+const PT_CIRCLEPATTERN: u32 = 5;
 const PT_NOISY: u32 = 6;
 
 const ST_NONE: u32 = 0;
@@ -118,7 +180,7 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
         case ST_POLKADOT: {
             let size = 0.1;
             let lp = vmod(p, vec3f(size))-vec3f(size*.5);
-            return u_Parameters.marchingCubesThreshold+(length(lp)-(.3*size));
+            return (length(lp)-(.3*size));
         }
         case ST_SPHEREPATTERN: {
             let size = 0.5;
@@ -171,21 +233,47 @@ fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
             let dist = lr-repSize*.5*stripeFac;
             let exists = step(dist, 0.);
             if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
-            else { return vec4f(u_BrushParameters.color+exists*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+            else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
         case PT_POLKADOT: {
             let size = 0.2;
             let lp = vmod(p, vec3f(size))-vec3f(size*.5);
             let exists = step(length(lp)-.3*size, 0.);
             if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
-            else { return vec4f(u_BrushParameters.color+exists*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+            else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+        }
+        case PT_STRIPES: {
+            let repSize = 0.2;
+            let stripeFac = 0.5;
+            let l = dot(p, vec3f(1.f)/sqrt(3.));
+            let ll = fmod(l, repSize)/repSize-.5;
+            let exists = step(abs(ll), stripeFac*.5);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
+            else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+        }
+        case PT_CIRCLEPATTERN: {
+            let size = 0.5;
+            let lp = vmod(p, vec3f(size))-vec3f(size*.5);
+            let s1 = abs(length(lp)-size*.55)-0.04;
+            let lp2 = vmod(lp, vec3f(size*.5))-vec3f(size*.25);
+            let s2 = abs(length(lp2)-size*.265)-0.02;
+            let lp3 = vmod(lp2, vec3f(size*.25))-vec3f(size*.125);
+            let s3 = abs(length(lp3)-size*.11)-0.008;
+            let exists = step(min(s1, min(s2, s3)), 0.);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
+            else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+        }
+        case PT_NOISY: {
+            var val = step(hash31(p*10.), .5);//step(abs(fbm(p*2.)-.5),0.15);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, val*currAmt); }
+            else { return vec4f(u_BrushParameters.color+(1.-val)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
         case PT_CHECKER: {
             let size = 0.2;
             let id = floor(p/size);
             let exists = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
             if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
-            else { return vec4f(u_BrushParameters.color+exists*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
+            else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
     }
 }
@@ -228,7 +316,9 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             default: {}
         }
 
-        // TODO: Mess with r for like noisy sculpt texture
+        if(u_BrushParameters.sculptTexture == ST_NOISY) {
+            r -= 0.2*fbm(p*.9);
+        }
 
         falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
         falloff *= falloff*falloff*falloff;

@@ -8,7 +8,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxTRS = glm::scale(mat4(1.0f), vec3(manager->boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
-    parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0};
+    parameters = {412, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0};
     brushParameters = {0, .02f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f), 0, 0, 0, 1};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
@@ -59,7 +59,7 @@ void MarchingCubes::GUIToParams::MainLoop() {
         EndPopup();
     }
 
-    if(brushParameters.brushType == 0 && CollapsingHeader("Draw Options")) {
+    if(brushParameters.brushType == 0/* && CollapsingHeader("Draw Options")*/) {
         Indent();
         bool followNormal = brushParameters.brushFollowNormal == 1;
         if(Checkbox("Align Draw Shape w/ Normal", &followNormal)) {
@@ -93,17 +93,19 @@ void MarchingCubes::GUIToParams::MainLoop() {
             EndPopup();
         }
 
-        if(Button(("Sculpt Texture: " + sculptTextures[brushParameters.sculptTexture]).c_str()))
-            OpenPopup("select_sculpt_texture_popup");
-        if(BeginPopup("select_sculpt_texture_popup")) {
-            SeparatorText("Separator");
-            for(uint32 i=0; i<sculptTextures.size(); i++) {
-                if(Selectable(sculptTextures[i].c_str())) {
-                    brushParameters.sculptTexture = i;
-                    manager->uniformManager.UpdateBrushParameters();
+        if(!parameters.paintMode) {
+            if(Button(("Sculpt Texture: " + sculptTextures[brushParameters.sculptTexture]).c_str()))
+                OpenPopup("select_sculpt_texture_popup");
+            if(BeginPopup("select_sculpt_texture_popup")) {
+                SeparatorText("Separator");
+                for(uint32 i=0; i<sculptTextures.size(); i++) {
+                    if(Selectable(sculptTextures[i].c_str())) {
+                        brushParameters.sculptTexture = i;
+                        manager->uniformManager.UpdateBrushParameters();
+                    }
                 }
+                EndPopup();
             }
-            EndPopup();
         }
         Unindent();
     }

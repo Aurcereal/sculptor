@@ -26,8 +26,8 @@ void Shader::Initialize(Device& device, const vector<ShaderParameter::Parameter>
 
     pipelineDesc.primitive.topology = PrimitiveTopology::TriangleList; // Interpret as triangles
     pipelineDesc.primitive.stripIndexFormat = IndexFormat::Undefined;
-    pipelineDesc.primitive.frontFace = FrontFace::CCW; // What counts as front face?
-    pipelineDesc.primitive.cullMode = CullMode::None; // Well ^ don't matter for now cuz we're not culling
+    pipelineDesc.primitive.frontFace = FrontFace::CW; // What counts as front face?
+    pipelineDesc.primitive.cullMode = CullMode::Back; // Well ^ don't matter for now cuz we're not culling
 
     FragmentState fragmentState;
     fragmentState.module = shaderModule;
