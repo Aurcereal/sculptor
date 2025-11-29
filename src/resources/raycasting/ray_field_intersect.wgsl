@@ -3,7 +3,8 @@
 
 struct RaycastInput {
     origin : vec3f,
-    direction : vec3f
+    direction : vec3f,
+    writeNormal : u32
 };
 @group(0) @binding(2) var<uniform> raycastInput : RaycastInput;
 @group(0) @binding(3) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
@@ -74,9 +75,9 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                     let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
                     let norm = normalize((u_Parameters.bbxInverseTranspose * vec4f(lNorm, 0.0))).xyz;
 
+                    if(intersectionBuffer[0].a == 0. || bool(raycastInput.writeNormal)) { intersectionBuffer[1] = vec4f(norm, 0.0); }
                     intersectionBuffer[0] = vec4f(hitPos-norm*0.0, 1.0);
-                    intersectionBuffer[1] = vec4f(norm, 0.0);
-
+                
                     return;
                 }
                 currT += stepSize;

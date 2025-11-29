@@ -74,7 +74,7 @@ fn noise(p: vec3f) -> f32 {
 // END
 
 // START SDFs taken From IQ
-fn sdEquilateralTriangle(pi: vec2f, r: f32) -> f32
+fn sdTriangle(pi: vec2f, r: f32) -> f32
 {
     var p = pi;
     let k = sqrt(3.0);
@@ -84,7 +84,7 @@ fn sdEquilateralTriangle(pi: vec2f, r: f32) -> f32
     p.x -= clamp( p.x, -2.0*r, 0.0 );
     return -length(p)*sign(p.y);
 }
-fn sdPentagram(pi: vec2f, r: f32) -> f32
+fn sdStar(pi: vec2f, r: f32) -> f32
 {
     let k1x = 0.809016994; // cos(π/ 5) = ¼(√5+1)
     let k2x = 0.309016994; // sin(π/10) = ¼(√5-1)
@@ -317,6 +317,13 @@ fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
     }
 }
 
+fn sdExtrusion(p: vec3f, dist2D: f32, size: f32) -> f32 {
+    let zDist = abs(p.z)-size*.5;
+    let ds = max(zDist, dist2D);
+    let s = sqrt(max(zDist, 0.)*zDist + max(dist2D, 0.)*dist2D);
+    return step(s, 0.) * ds + s;
+}
+
 @compute
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -360,10 +367,12 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                 falloff = (1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r)); // just max(0,)
             }
             case DS_TRIANGLE: {
-
+                r += 4.*sdExtrusion(lp, sdTriangle(lp.xy, .5*brushSize), .5*brushSize)-u_Parameters.marchingCubesThreshold;
+                falloff = (1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r)); 
             }
             case DS_STAR: {
-
+                r += 4.*sdExtrusion(lp, sdStar(lp.xy, .5*brushSize), .5*brushSize)-u_Parameters.marchingCubesThreshold;
+                falloff = (1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r)); 
             }
             default: {}
         }

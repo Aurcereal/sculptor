@@ -29,7 +29,7 @@ void MarchingCubes::Manager::MainLoop() {
     uniformManager.UpdateTime();
 
     if(inputHandler.mouseDown) {
-        raycaster.RayFieldIntersect(camera.pos, camera.Raycast(inputManager->mousePosition));
+        raycaster.RayFieldIntersect(camera.pos, camera.Raycast(inputManager->mousePosition), continuouslyUpdateBrushOrientation);
     }
     inputHandler.HandleUpdates();
 
@@ -41,11 +41,9 @@ void MarchingCubes::Manager::MainLoop() {
 void MarchingCubes::InputHandler::OnLMouseClick(vec2 pos) {
     mouseDown = true;
     vec3 rd = manager->camera.Raycast(pos);
-    std::cout << "CLICKED: " << rd.x << " " << rd.y << " " << rd.z << std::endl;
-    manager->raycaster.RayFieldIntersect(manager->camera.pos, rd);
+    manager->raycaster.RayFieldIntersect(manager->camera.pos, rd, true);
 }
 void MarchingCubes::InputHandler::OnLMouseRelease(vec2) {
-    std::cout << "RELEASE" << std::endl;
     mouseDown = false;
     manager->raycaster.ResetIntersectionBuffer();
 }
@@ -53,6 +51,7 @@ void MarchingCubes::InputHandler::OnMouseMove(vec2, vec2) {
     
 }
 void MarchingCubes::InputHandler::HandleUpdates() {
+    // Handle Subtraction w/ Alt key
     bool currentlyAdding = manager->guiToParams.brushParameters.brushMult > 0.0f;
     bool willBeAdding = !manager->inputManager->altDown;
     if(willBeAdding != currentlyAdding) {

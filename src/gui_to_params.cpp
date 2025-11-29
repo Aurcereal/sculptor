@@ -125,32 +125,6 @@ void MarchingCubes::GUIToParams::MainLoop() {
         manager->uniformManager.UpdateBrushParameters();
     }
 
-    ImGui::SeparatorText("Operations");
-
-    const array<char*, 2> operationNames = {"Operation A", "Operation B"};
-    if(ImGui::Button(selectedOperation == -1 ? "Select Operation" : operationNames[selectedOperation]))
-        ImGui::OpenPopup("select_operation_popup");
-    if(ImGui::BeginPopup("select_operation_popup")) {
-        ImGui::SeparatorText("Separator");
-        for(int i=0; i<operationNames.size(); i++) {
-            if(ImGui::Selectable(operationNames[i])) {
-                selectedOperation = i;
-            }
-        }
-        ImGui::EndPopup();
-    }
-    switch(selectedOperation) {
-        case 0:
-        ImGui::TextWrapped("Operation 0 settings here..");
-        break;
-        case 1:
-        ImGui::TextWrapped("Operation 1 settings here...");
-        break;
-    }
-    if(selectedOperation != -1) {
-        ImGui::Button("Apply Operation");
-    }
-
     if(Button("Reset Object"))
         OpenPopup("reset_object_popup");
     if(BeginPopup("reset_object_popup")) {
@@ -166,6 +140,9 @@ void MarchingCubes::GUIToParams::MainLoop() {
                         break;
                     case IPLANE:
                         manager->fieldEditor.GeneratePlaneField();
+                        break;
+                    case IREDPLANET:
+                        manager->fieldEditor.GenerateRedPlanetField();
                         break;
                 }
             }
@@ -191,10 +168,16 @@ void MarchingCubes::GUIToParams::MainLoop() {
     }
 
     int mr = static_cast<int>(parameters.marchingCubesResolution);
-    if(ImGui::SliderInt("Marching Cubes Resolution", &mr, 8, 112)) {
+    if(ImGui::SliderInt("Mesh LoD", &mr, 8, 112)) {
         std::cout << "res chang" << std::endl;
         parameters.marchingCubesResolution = static_cast<uint32_t>(mr);
         manager->uniformManager.UpdateParameters();
+    }
+
+    if(CollapsingHeader("Advanced")) {
+        Indent();
+        Checkbox("Update Brush Direction While Pressed", &manager->continuouslyUpdateBrushOrientation);
+        Unindent();
     }
 
     ImGui::End();

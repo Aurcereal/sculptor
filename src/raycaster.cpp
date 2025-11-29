@@ -30,7 +30,7 @@ void MarchingCubes::Raycaster::InitializeWithDependencies() {
     computeIntersection.Initialize(manager->device, params, "./raycasting/ray_field_intersect.wgsl");
 }
 
-void MarchingCubes::Raycaster::RayFieldIntersect(vec3 origin, vec3 direction) {
-    manager->uniformManager.SetRaycastInput(origin, direction);
+void MarchingCubes::Raycaster::RayFieldIntersect(vec3 origin, vec3 direction, bool writeNormal) {
+    manager->uniformManager.SetRaycastInput(origin, direction, writeNormal);
     computeIntersection.DispatchSync(manager->device, manager->queue, uvec3(1));
 }

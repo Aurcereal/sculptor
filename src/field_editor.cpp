@@ -23,6 +23,7 @@ void MarchingCubes::FieldEditor::Initialize() {
     sphereFieldInitializer.Initialize(manager->device, params, "./field_editor/sphere_initialize_field.wgsl");
     cubeFieldInitializer.Initialize(manager->device, params, "./field_editor/cube_initialize_field.wgsl");
     planeFieldInitializer.Initialize(manager->device, params, "./field_editor/plane_initialize_field.wgsl");
+    redPlanetFieldInitializer.Initialize(manager->device, params, "./field_editor/red_planet_initialize_field.wgsl");
 
     //
     vector<ShaderParameter::Parameter> copybackParams = {
@@ -59,6 +60,9 @@ void MarchingCubes::FieldEditor::GenerateCubeField() {
 }
 void MarchingCubes::FieldEditor::GeneratePlaneField() {
     planeFieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
+}
+void MarchingCubes::FieldEditor::GenerateRedPlanetField() {
+    redPlanetFieldInitializer.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
 }
 
 void MarchingCubes::FieldEditor::UpdateField() {

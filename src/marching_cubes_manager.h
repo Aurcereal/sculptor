@@ -62,8 +62,8 @@ namespace MarchingCubes {
         vec3 origin;
         float _pad0;
         vec3 direction;
-        float _pad1;
-        inline RaycastInputUniform(vec3 o, vec3 d) : origin(o), direction(d) {}
+        uint32 writeNormal;
+        inline RaycastInputUniform(vec3 o, vec3 d, bool wn = true) : origin(o), direction(d), writeNormal(wn ? 1 : 0) {}
     };
 
     class UniformManager {
@@ -88,7 +88,7 @@ namespace MarchingCubes {
         void UpdateModelMatrix();
         void UpdateTime();
 
-        void SetRaycastInput(vec3 origin, vec3 direction);
+        void SetRaycastInput(vec3 origin, vec3 direction, bool writeNormal);
 
         void Destroy();
 
@@ -132,11 +132,11 @@ namespace MarchingCubes {
             "Comb", "Cube Comb"
         };
 
-        const array<string, 3> initializeShapeObjects = {
-            "Sphere", "Cube", "Plane"
+        const array<string, 4> initializeShapeObjects = {
+            "Sphere", "Cube", "Plane", "Red Planet"
         };
         enum InitializeShapeObjects {
-            ISPHERE, ICUBE, IPLANE
+            ISPHERE, ICUBE, IPLANE, IREDPLANET
         };
 
         int selectedOperation = -1;
@@ -153,7 +153,7 @@ namespace MarchingCubes {
 
         void InitializeWithDependencies();
 
-        void RayFieldIntersect(vec3 origin, vec3 direction);  
+        void RayFieldIntersect(vec3 origin, vec3 direction, bool writeNormal = true);  
         BufferHolder intersectionBuffer;
 
         void ResetIntersectionBuffer();
@@ -174,6 +174,7 @@ namespace MarchingCubes {
         void GenerateSphereField();
         void GenerateCubeField();
         void GeneratePlaneField();
+        void GenerateRedPlanetField();
 
         void UpdateField();
 
@@ -191,6 +192,7 @@ namespace MarchingCubes {
         ComputeShader sphereFieldInitializer;
         ComputeShader cubeFieldInitializer;
         ComputeShader planeFieldInitializer;
+        ComputeShader redPlanetFieldInitializer;
 
         ComputeShader copybackShader; 
         void CopyScratchToField(); // Copy fieldScratchTexture -> fieldTexture
@@ -280,6 +282,7 @@ namespace MarchingCubes {
         Camera camera;
 
         float boundingBoxScale;
+        bool continuouslyUpdateBrushOrientation = true;
 
         void MainLoop();
 

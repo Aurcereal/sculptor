@@ -48,8 +48,8 @@ void MarchingCubes::UniformManager::UpdateTime() {
     manager->queue.writeBuffer(cameraTimeUniformBuffer.buffer, offsetof(CameraTimeUniform, time), &manager->guiToParams.cameraTimeParameters.time, sizeof(float));
 }
 
-void MarchingCubes::UniformManager::SetRaycastInput(vec3 origin, vec3 direction) {
-    auto raycastInput = RaycastInputUniform(origin, direction);
+void MarchingCubes::UniformManager::SetRaycastInput(vec3 origin, vec3 direction, bool writeNormal) {
+    auto raycastInput = RaycastInputUniform(origin, direction, writeNormal);
     manager->queue.writeBuffer(raycastInputUniformBuffer.buffer, 0, &raycastInput, sizeof(RaycastInputUniform));
 }
 
