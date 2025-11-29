@@ -377,11 +377,6 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             default: {}
         }
 
-        // if(u_BrushParameters.sculptTexture == ST_NOISY) {
-        //     r -= 0.2*fbm(p*.9);
-        // }
-
-        //falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
         falloff *= falloff*falloff*falloff;
         let amt = brushMult * falloff;
 
