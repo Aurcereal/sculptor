@@ -488,7 +488,7 @@ RequiredLimits Application::GetRequiredLimits(Adapter adapter) const {
     requiredLimits.limits.maxComputeWorkgroupsPerDimension = 65535;
     requiredLimits.limits.maxComputeWorkgroupStorageSize = 32768;
     requiredLimits.limits.maxDynamicStorageBuffersPerPipelineLayout = 8;
-    requiredLimits.limits.maxDynamicUniformBuffersPerPipelineLayout = 10;
+    requiredLimits.limits.maxDynamicUniformBuffersPerPipelineLayout = 8;
     requiredLimits.limits.maxInterStageShaderComponents = 28;
     requiredLimits.limits.maxSampledTexturesPerShaderStage = 16;
     requiredLimits.limits.maxSamplersPerShaderStage = 16;
