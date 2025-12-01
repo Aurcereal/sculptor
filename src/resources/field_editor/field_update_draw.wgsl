@@ -39,12 +39,40 @@ fn hash31(p3: vec3f) -> f32 // From https://www.shadertoy.com/view/4djSRW
     return fract((p3v.x + p3v.y) * p3v.z);
 }
 
+fn hash33(p3i: vec3f) -> vec3f {
+    var p3 = p3i;
+	p3 = fract(p3 * vec3f(.1031, .1030, .0973));
+    p3 += dot(p3, p3.yxz+33.33);
+    return fract((p3.xxy + p3.yxx)*p3.zyx);
+}
+
 fn rotZ(o: f32) -> mat3x3f {
     return mat3x3f(cos(o), sin(o), 0., -sin(o), cos(o), 0., 0., 0., 1.);
 }
 
 fn rotX(o: f32) -> mat3x3f {
     return mat3x3f(1., 0., 0., 0., cos(o), sin(o), 0., -sin(o), cos(o));
+}
+
+fn voronoi(p: vec3f) -> f32 {
+    let id = floor(p);
+    let lp = p-id;
+
+    var minDist = 1000.;
+    for(var x: i32 = -1; x<=1; x=x+1) {
+        for(var y: i32 = -1; y<=1; y=y+1) {
+            for(var z: i32 = -1; z<=1; z=z+1) {
+                let currCell = id+vec3f(vec3i(x,y,z));
+                let randVal = hash33(currCell);
+
+                let orbPos = currCell+randVal;
+                let dist = length(p-orbPos);
+                minDist = min(minDist, dist);
+            }
+        }
+    }
+
+    return minDist;
 }
 
 // START https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
@@ -168,6 +196,7 @@ const ST_NOISY: u32 = 5;
 const ST_COMB: u32 = 6;
 const ST_CUBECOMB: u32 = 7;
 const ST_BUMPY: u32 = 8;
+const ST_VORONOI: u32 = 9;
 
 const PI: f32 = 3.141592;
 
@@ -260,6 +289,9 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             let size = 0.1;
             let lp = vmod(p, vec3f(size))-vec3f(size*.5);
             return (length(lp)-(.3*size));
+        }
+        case ST_VORONOI: {
+            return voronoi(p*3.)*1.25 - 1.5-.5;
         }
     }
 }
