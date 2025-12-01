@@ -28,13 +28,14 @@ namespace MarchingCubes {
         uint32_t textureResolution;
         uint32_t marchingCubesResolution;
         float marchingCubesThreshold;
-        uint32_t flatShading;
+        uint32 flatShading;
         mat4x4 boundingBoxTRS;
         mat4x4 boundingBoxInverseTRS;
         mat4x4 boundingBoxInverseTranspose;
-        uint32_t mirrorX;
-        uint32_t paintMode;
-        float _padding0[2];
+        uint32 mirrorX;
+        uint32 paintMode;
+        uint32 leveledMode;
+        float _padding0[1];
     };
 
     struct BrushParameters {

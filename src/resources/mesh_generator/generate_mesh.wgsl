@@ -12,7 +12,10 @@ struct Parameters {
     flatShading : u32,
     bbxTRS : mat4x4f,
     bbxInvTRS : mat4x4f,
-    bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow
+    bbxInverseTranspose : mat4x4f,
+    mirrorX : u32,
+    paintMode : u32,
+    leveledMode : u32
 };
 @group(0) @binding(5) var<uniform> u_MarchingCubesParameters : Parameters;
 
@@ -344,7 +347,11 @@ fn uvToWorldSpaceNorm(nor: vec3f) -> vec3f {
 }
 
 fn sampleField(p: vec3f) -> f32 {
-    return textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r;
+    if(bool(u_MarchingCubesParameters.leveledMode)) {
+        return textureSampleLevel(fieldTexture, fieldSampler, vec3f(p.x, floor(p.y/.05)*.05, p.z), 0.).r;
+    } else {
+        return textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r;
+    }
     // let cubeSize = 0.05;
     // let ip = floor(p/cubeSize)*cubeSize;
     // return mix(textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r, textureSampleLevel(fieldTexture, fieldSampler, ip, 0.).r, 0.7);
