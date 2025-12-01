@@ -352,10 +352,6 @@ fn sampleField(p: vec3f) -> f32 {
     } else {
         return textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r;
     }
-    // let cubeSize = 0.05;
-    // let ip = floor(p/cubeSize)*cubeSize;
-    // return mix(textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r, textureSampleLevel(fieldTexture, fieldSampler, ip, 0.).r, 0.7);
-    // //tanh((textureSampleLevel(fieldTexture, fieldSampler, p, 0.).r - 0.5) * 4.)*.5+.5;
 }
 
 fn sampleNormal(pos: vec3f) -> vec3f {
