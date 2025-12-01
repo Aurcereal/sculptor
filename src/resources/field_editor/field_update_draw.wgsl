@@ -281,9 +281,9 @@ fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
             else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
         case PT_POLKADOT: {
-            let size = 0.2;
+            let size = 0.07;
             let lp = vmod(p, vec3f(size))-vec3f(size*.5);
-            let exists = step(length(lp)-.3*size, 0.);
+            let exists = step(length(lp), .3*size);
             if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
             else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
