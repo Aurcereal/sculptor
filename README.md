@@ -40,11 +40,44 @@ https://github.com/user-attachments/assets/c61c4dfe-7189-4275-b309-5f1b5789c22c
 
 I plan on adding UI for changing the brush size and power, as well as adding color and smooth normals.  I plan on having extra operations like mirror, twist around an axis, and sdf-like domain repetition.  I'm not sure if I'll have time to add the sdf-like operations for the final submission.
 
-## Final Submission
+## Final Submission:
 
 ### Final Results
 
+[Slideshow Version](https://docs.google.com/presentation/d/1K8j5KwaZzlcoo3jWt414LCfCrM3Et9RGUvkCsfZc7_M/edit?usp=sharing)
 
+#### Overview
+
+The final result is a sculpting tool made with WebGPU and C++.  The user is able to use a variety of brushes and operations to sculpt their model.  All of the mesh operations are done with compute shaders.
+
+![](ShowcaseMedia/broccoli.png)
+
+#### Implementation Details
+
+The model the user creates is represented by a 3D scalar field in a 3D texture.  From the 3D texture, we create a mesh using marching cubes implemented inside a compute shader.  Every edit the user makes is to the 3D scalar field, which then changes the mesh generated.
+
+![](ShowcaseMedia/stripey.png)
+![](ShowcaseMedia/redCharacter.png)
+
+#### Functionality
+
+Because the model is represented with a scalar field, we can take advantage of SDF-like brushes and operations.  The user can use different brush shapes like a sphere, cube, and cone; as well as more procedural shapes like sphere fractal, gyroid, voronoi… etc.  There’s also a mirror mode and a twisting brush.
+
+![](ShowcaseMedia/sdflike.png)
+![](ShowcaseMedia/voronoi.png)
+![](ShowcaseMedia/twirlSpherePattern.png)
+
+#### Possible Future Features
+
+- Brushes & Operations
+  - A stretching operation that allows the user to click and drag geometry to stretch it.
+  - Brush that makes pipes/other repeated objects (different types of skin or fur or grass)
+  - Can draw roughness/metallic as well as albedo (maybe PBR)
+- Optimizations
+  - Divide the mesh into 3D chunks and only regenerate the part of the mesh that’s changed.  
+  - Only dispatch the scalar field updating compute shader in places where there’ll be changes.
+
+![](ShowcaseMedia/ralsei.png)
 
 ### Post Mortem
 
