@@ -8,7 +8,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxTRS = glm::scale(mat4(1.0f), vec3(manager->boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
-    parameters = {412, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0, 0};
+    parameters = {412, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0, 0, -1.0f, vec3(0,-1,0)};
     brushParameters = {0, .02f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f), 0, 0, 0, 1};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
@@ -181,6 +181,12 @@ void MarchingCubes::GUIToParams::MainLoop() {
         bool leveledMode = manager->guiToParams.parameters.leveledMode == 1;
         if(Checkbox("Leveled Mode", &leveledMode)) {
             manager->guiToParams.parameters.leveledMode = leveledMode ? 1 : 0;
+            manager->uniformManager.UpdateParameters();
+        }
+
+        array<float, 3> lightDir = { parameters.lightDirection.x, parameters.lightDirection.y, parameters.lightDirection.z};
+        if(SliderFloat3("Light Direction", lightDir.data(), -1.0f, 1.0f)) {
+            parameters.lightDirection = vec3(lightDir[0], lightDir[1], lightDir[2]);
             manager->uniformManager.UpdateParameters();
         }
 

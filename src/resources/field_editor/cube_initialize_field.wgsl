@@ -25,7 +25,7 @@ struct BrushParameters {
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     var p = (vec3f(id.xyz)/f32(u_Parameters.texRes))*2.-1.;
     var r = max(max(abs(p.x), abs(p.y)), abs(p.z));
-    var amt = 0.4*smoothstep(0.8, 0.2, r);
+    var amt = 0.4*smoothstep(0.6, 0.14, r);
     textureStore(outputTexture, id, vec4f(amt, 0.0, 0.0, 0.0));
     textureStore(outputColorTexture, id, vec4f(step(u_Parameters.marchingCubesThreshold*0.7, amt) * u_BrushParameters.color, 1.0));
 }

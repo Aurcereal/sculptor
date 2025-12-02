@@ -27,7 +27,10 @@ struct Parameters {
     flatShading : u32,
     bbxTRS : mat4x4f,
     bbxInvTRS : mat4x4f,
-    bbxInverseTranspose : mat4x4f // Should be mat3x3 but alignment isn't working somehow
+    bbxInverseTranspose : mat4x4f, // Should be mat3x3 but alignment isn't working somehow
+    mirrorX : u32,
+    paintMode : u32,
+    lightDirection : vec3f
 };
 @group(0) @binding(3) var<uniform> u_Parameters : Parameters;
 
@@ -47,7 +50,7 @@ fn vs_main(vIn: VertexInput) -> VertexOutput {
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 	let norm = normalize(in.normal.xyz);
 
-	let lightDir = vec3f(0.0,-1.0,0.0);//-vec3f(1.0)/sqrt(3.0);
+	let lightDir = normalize(u_Parameters.lightDirection);//vec3f(0.0,-1.0,0.0);//-vec3f(1.0)/sqrt(3.0);
 	let diffuseColor = textureSample(fieldTexture, fieldSampler, (u_Parameters.bbxInvTRS * vec4(in.worldPosition,1.0)).xyz).rgb;//vec3f(0.3,0.3,0.4);
 	let specColor = vec3f(1.0);
 

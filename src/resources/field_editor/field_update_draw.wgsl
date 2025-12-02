@@ -14,7 +14,8 @@ struct Parameters {
     bbxInvTRS : mat4x4f,
     bbxInverseTranspose : mat4x4f, // Should be mat3x3 but alignment isn't working somehow
     mirrorX : u32,
-    paintMode : u32
+    paintMode : u32,
+    lightDirection : vec3f
 };
 @group(0) @binding(6) var<uniform> u_Parameters : Parameters;
 @group(0) @binding(7) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)

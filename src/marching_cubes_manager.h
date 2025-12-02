@@ -35,7 +35,9 @@ namespace MarchingCubes {
         uint32 mirrorX;
         uint32 paintMode;
         uint32 leveledMode;
-        float _padding0[1];
+        float _padding0;
+        vec3 lightDirection;
+        float _padding1[1];
     };
 
     struct BrushParameters {

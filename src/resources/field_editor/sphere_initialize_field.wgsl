@@ -25,7 +25,7 @@ struct BrushParameters {
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     var p = (vec3f(id.xyz)/f32(u_Parameters.texRes))*2.-1.;
     var r = length(p);//+sin(p.y*20.)*0.1;
-    var amt = 0.4*smoothstep(0.8, 0.4, r); // Smooth field looks smooth, high gradients bad..
+    var amt = 0.4*smoothstep(0.6, 0.2, r); // Smooth field looks smooth, high gradients bad..
     textureStore(outputTexture, id, vec4f(amt, 0.0, 0.0, 0.0));
     textureStore(outputColorTexture, id, vec4f(u_BrushParameters.color, 1.0));
 }
