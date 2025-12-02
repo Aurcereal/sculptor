@@ -291,7 +291,7 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             return (length(lp)-(.3*size));
         }
         case ST_VORONOI: {
-            return voronoi(p*3.)*1.25 - 1.5-.5;
+            return voronoi(p*3.)*1.25*1.5-1. - 1.5-.5;
         }
     }
 }
