@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "input_manager.h"
 #include "gui_manager.h"
+#include "buffer_helper.h"
 
 #include <array>
 

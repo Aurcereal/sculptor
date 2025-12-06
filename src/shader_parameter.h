@@ -4,6 +4,7 @@
 #include <iostream>
 #include "texture_holder.h"
 #include "webgpu_utils.h"
+#include "buffer_helper.h"
 
 struct BufferHolder;
 
