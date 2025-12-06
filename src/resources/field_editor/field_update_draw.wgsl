@@ -436,7 +436,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                 let rp = brushPos + (rot(norm, 2.5*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
                 var ruv = (u_Parameters.bbxInvTRS * vec4f(rp, 1.)).xyz;
                 ruv.x = 0.5+mirrorAlignment*(ruv.x-0.5);
-                newSculptVal = textureSampleLevel(inputTexture, fieldSampler, ruv+vec3f(0.5)/f32(u_Parameters.texRes), 0.).r; 
+                newSculptVal = borderFalloff(ruv) * textureSampleLevel(inputTexture, fieldSampler, ruv+vec3f(0.5)/f32(u_Parameters.texRes), 0.).r; 
 
                 let rpCol = brushPos + (rot(norm, 2.5*amt) * vec4f(p-brushPos, 1.)).xyz;
                 var ruvCol = (u_Parameters.bbxInvTRS * vec4f(rpCol, 1.)).xyz;

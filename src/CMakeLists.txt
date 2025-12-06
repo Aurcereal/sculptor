@@ -39,7 +39,8 @@ set(SOURCE_FILES
 	input_manager.cpp
 	raycaster.cpp
 	gui_manager.cpp
-	gui_to_params.cpp)
+	gui_to_params.cpp
+	input_handler.cpp)
 
 add_executable(App ${SOURCE_FILES})
 

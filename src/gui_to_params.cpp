@@ -150,7 +150,6 @@ void MarchingCubes::GUIToParams::MainLoop() {
         EndPopup();
     }
 
-
     ImGui::SeparatorText("Settings");
 
     const array<char*, 2> shadingNames = {"Smooth Shading", "Flat Shading"};
@@ -169,7 +168,6 @@ void MarchingCubes::GUIToParams::MainLoop() {
 
     int mr = static_cast<int>(parameters.marchingCubesResolution);
     if(ImGui::SliderInt("Mesh LoD", &mr, 8, 112)) {
-        std::cout << "res chang" << std::endl;
         parameters.marchingCubesResolution = static_cast<uint32_t>(mr);
         manager->uniformManager.UpdateParameters();
     }
