@@ -317,6 +317,7 @@ bool Application::Initialize() {
     wgpuAdapterRelease(adapter);
 
     //
+    BufferHelper::Initialize(device);
     guiManager.Initialize(device, window, surfaceFormat);
     marchingCubesManager = mkU<MarchingCubes::Manager>(&device, &queue, &inputManager, surfaceFormat, &guiManager);
 

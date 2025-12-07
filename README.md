@@ -1,3 +1,5 @@
+This commit is after the final submission, the final submission commit is the Video and Postmortem [commit](https://github.com/Aurcereal/sculptor/commit/cf954705dbc91d8ed80e484b352e2eeda6c80fdf).
+
 ## Design Document:
 
 #### Introduction
