@@ -7,7 +7,7 @@ struct RaycastInput {
     writeNormal : u32
 };
 @group(0) @binding(2) var<uniform> raycastInput : RaycastInput;
-@group(0) @binding(3) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
+@group(0) @binding(3) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm, ri, up)
 
 struct Parameters {
     texRes : u32,
@@ -47,6 +47,15 @@ fn sampleNormal(pos: vec3f) -> vec3f {
     ));
 }
 
+fn createFrame(fo: vec3f) -> mat3x3f {
+    let up1 = vec3f(0.,1.,0.);
+    let up2 = vec3f(0.,0.,1.);
+    let ri1 = cross(up1, fo);
+    let riFinal = normalize(step(dot(ri1,ri1), 0.)*cross(up2, fo) + ri1);
+    let upFinal = normalize(cross(fo, riFinal));
+    return mat3x3f(riFinal, upFinal, fo);
+}
+
 @compute 
 @workgroup_size(4, 4, 4)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
@@ -75,7 +84,12 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                     let hitPos = (u_Parameters.bbxTRS * vec4f(lHitPos, 1.0)).xyz;
                     let norm = normalize((u_Parameters.bbxInverseTranspose * vec4f(lNorm, 0.0))).xyz;
 
-                    if(intersectionBuffer[0].a == 0. || bool(raycastInput.writeNormal)) { intersectionBuffer[1] = vec4f(norm, 0.0); }
+                    if(intersectionBuffer[0].a == 0. || bool(raycastInput.writeNormal)) { 
+                        let normFrame = createFrame(norm);
+                        intersectionBuffer[1] = vec4f(normFrame[2], 0.0);
+                        intersectionBuffer[2] = vec4f(normFrame[0], 0.0);
+                        intersectionBuffer[3] = vec4f(normFrame[1], 0.0);
+                    }
                     intersectionBuffer[0] = vec4f(hitPos-norm*0.0, 1.0);
                 
                     return;

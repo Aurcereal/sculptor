@@ -5,7 +5,7 @@
 namespace SP = ShaderParameter;
 
 void MarchingCubes::Raycaster::Initialize() {
-    intersectionBuffer = createBuffer(manager->device, sizeof(vec4)*2,
+    intersectionBuffer = createBuffer(manager->device, sizeof(vec4)*4,
         BufferUsage::Storage | BufferUsage::CopyDst | BufferUsage::CopySrc, false);
     ResetIntersectionBuffer();
 

@@ -378,6 +378,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         var p = (u_Parameters.bbxTRS * vec4f(uv, 1.0)).xyz;
 
         let norm = intersectionBuffer[1].xyz;
+        let normFrame = mat3x3f(intersectionBuffer[2].xyz, intersectionBuffer[3].xyz, intersectionBuffer[1].xyz);
         let brushPos = pos.xyz;
         let brushSize = u_BrushParameters.brushSize;
         let brushMult = u_BrushParameters.brushMult;
@@ -385,7 +386,8 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         // Calculate Falloff
         var lp = p - brushPos;
         if(bool(u_BrushParameters.brushFollowNormal)) {
-            lp = transpose(createFrame(norm)) * lp;
+
+            lp = transpose(normFrame) * lp; //createFrame(norm)
             lp.z *= 2.5;
         }
         
