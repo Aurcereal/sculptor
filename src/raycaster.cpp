@@ -33,7 +33,18 @@ void MarchingCubes::Raycaster::InitializeWithDependencies() {
 void MarchingCubes::Raycaster::RayFieldIntersect(vec3 origin, vec3 direction, bool writeNormal) {
     manager->uniformManager.SetRaycastInput(origin, direction, writeNormal);
     computeIntersection.DispatchSync(manager->device, manager->queue, uvec3(1));
+}
+
+void MarchingCubes::Raycaster::RayFieldIntersect(vec3 origin, vec3 direction, vec3 *outPosition, mat3x3 *outFrame, bool writeNormal) {
+    manager->uniformManager.SetRaycastInput(origin, direction, writeNormal);
+    computeIntersection.DispatchSync(manager->device, manager->queue, uvec3(1));
+
     vec4* intersectionData = (vec4*) BufferHelper::MapBufferToCPU(manager->device, manager->queue, intersectionBuffer);
-    std::cout << "x: " << intersectionData[0].x << "y: " << intersectionData[0].y << "z: " << intersectionData[0].z << std::endl;
+    *outPosition = intersectionData[0];
+    *outFrame = mat3x3(
+                    vec3(intersectionData[2]),
+                    vec3(intersectionData[0]),
+                    vec3(intersectionData[1])
+                );
     BufferHelper::Unmap();
 }

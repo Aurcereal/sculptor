@@ -157,7 +157,8 @@ namespace MarchingCubes {
 
         void InitializeWithDependencies();
 
-        void RayFieldIntersect(vec3 origin, vec3 direction, bool writeNormal = true);  
+        void RayFieldIntersect(vec3 origin, vec3 direction, bool writeNormal = true);
+        void RayFieldIntersect(vec3 origin, vec3 direction, vec3 *outPosition, mat3x3 *outFrame, bool writeNormal = true);  
         BufferHolder intersectionBuffer;
 
         void ResetIntersectionBuffer();
@@ -166,6 +167,23 @@ namespace MarchingCubes {
         Manager *manager;
 
         ComputeShader computeIntersection;
+    };
+
+    class CursorOperator {
+    public:
+        inline CursorOperator(Manager *m) : manager(m) {}
+
+        void Update(vec3 newCursorPos, mat3x3 newCursorFrame);
+        void OnClick(vec3 newCursorPos, mat3x3 newCursorFrame);
+
+    private:
+        vec3 prevPos;
+        mat3x3 prevFrame;
+
+        vec2 currOffset = vec2(0.0f);
+
+        Manager *manager;
+
     };
 
     class FieldEditor {
@@ -279,6 +297,7 @@ namespace MarchingCubes {
         InputHandler inputHandler;
         UniformManager uniformManager;
         Raycaster raycaster;
+        CursorOperator cursorOperator;
         FieldEditor fieldEditor;
         MeshGenerator meshGenerator;
         Drawer drawer;

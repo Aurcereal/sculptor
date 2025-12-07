@@ -3,7 +3,11 @@
 void MarchingCubes::InputHandler::OnLMouseClick(vec2 pos) {
     mouseDown = true;
     vec3 rd = manager->camera.Raycast(pos);
-    manager->raycaster.RayFieldIntersect(manager->camera.pos, rd, true);
+
+    vec3 hitPos; mat3x3 frame;
+    manager->raycaster.RayFieldIntersect(manager->camera.pos, rd, &hitPos, &frame, true);
+
+    manager->cursorOperator.OnClick(hitPos, frame);
 }
 void MarchingCubes::InputHandler::OnLMouseRelease(vec2) {
     mouseDown = false;
