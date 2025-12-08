@@ -46,7 +46,9 @@ void MarchingCubes::Manager::MainLoop() {
 
 void MarchingCubes::CursorOperator::Update(vec3 pos, mat3x3 frame) {
     vec3 delta = pos - prevPos;
-    vec3 lDelta = transpose(frame) * delta;
+    vec3 lDelta1 = transpose(prevFrame) * delta;
+    vec3 lDelta2 = transpose(frame) * delta;
+    vec3 lDelta = 0.5f * (lDelta1+lDelta2);
     currOffset += vec2(lDelta.x, lDelta.y);
 
     std::cout << "X: " << currOffset.x << " Y: " << currOffset.y << std::endl;

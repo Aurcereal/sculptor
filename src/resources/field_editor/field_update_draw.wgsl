@@ -250,10 +250,18 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             return 1.;
         }
         case ST_CHECKER: {
-            let size = 0.2;
-            let id = floor(p/size);
-            let parity = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
-            return parity;
+            let sp = intersectionBuffer[4].xy;
+            let brushPos = intersectionBuffer[0].xyz;
+            let normFrame = mat3x3f(intersectionBuffer[2].xyz, intersectionBuffer[3].xyz, intersectionBuffer[1].xyz);
+            var lp = transpose(normFrame) * (p-brushPos);
+            lp += vec3f(sp,0.);
+            lp *= vec3f(10.,10.,1.);
+            let h = sin(lp.x)+cos(lp.y);
+            return h-lp.z;
+            // let size = 0.2;
+            // let id = floor(p/size);
+            // let parity = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
+            // return parity;
         }
         case ST_POLKADOT: {
             let size = 0.25;
@@ -297,7 +305,7 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
     }
 }
 
-fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
+fn getPaintColor(p: vec3f, lp2d: vec2f, currAmt: f32) -> vec4f {
     switch u_BrushParameters.paintTexture {
         case default, PT_SOLIDCOLOR: {
             return vec4f(u_BrushParameters.color, currAmt);
@@ -347,12 +355,12 @@ fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
             else { return vec4f(u_BrushParameters.color+(1.-val)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
         case PT_CHECKER: {
-            let sp = intersectionBuffer[4].xy*20.; // y's weird
-            let size = 0.2*40.;
-            let id = floor(sp/size);
-            let exists = step(abs(fmod(id.x+id.y, 2.)-1.), 0.5);
-            // let exists = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
-            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color * vec3f(sin(sp.y), 0.,0.), exists*currAmt); }
+            //let sp = 20.*(intersectionBuffer[4].xy+lp2d);
+            let size = 0.2;//*40.;
+            let id = floor(p/size);
+            //let exists = step(abs(fmod(id.x+id.y, 2.)-1.), 0.5);
+            let exists = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
             else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
     }
@@ -387,6 +395,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 
         // Calculate Falloff
         var lp = p - brushPos;
+        let lp2d = (transpose(normFrame) * lp).xy;
         if(bool(u_BrushParameters.brushFollowNormal)) {
 
             lp = transpose(normFrame) * lp; //createFrame(norm)
@@ -432,7 +441,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
                 newSculptVal = clamp(curr+sculptAmt, -0.5, borderFalloff(uv));
 
                 let colAmt = 10. * max(0., amt);
-                let colChangeInfo = getPaintColor(p, colAmt);
+                let colChangeInfo = getPaintColor(p, lp2d, colAmt);
                 let currCol = textureLoad(inputColorTexture, id, 0);
                 newCol = mix(currCol, vec4f(colChangeInfo.rgb, 1.0), colChangeInfo.a);
             }
