@@ -5,7 +5,7 @@
 namespace SP = ShaderParameter;
 
 void MarchingCubes::Raycaster::Initialize() {
-    intersectionBuffer = createBuffer(manager->device, sizeof(vec4)*4,
+    intersectionBuffer = createBuffer(manager->device, sizeof(vec4)*5,
         BufferUsage::Storage | BufferUsage::CopyDst | BufferUsage::CopySrc, false);
     ResetIntersectionBuffer();
 
@@ -13,8 +13,9 @@ void MarchingCubes::Raycaster::Initialize() {
 }
 
 void MarchingCubes::Raycaster::ResetIntersectionBuffer() {
-    array<vec4, 2> intersectInfo = {vec4(0), vec4(0)};
-    manager->queue.writeBuffer(intersectionBuffer.buffer, 0, intersectInfo.data(), 2*sizeof(vec4));
+    array<vec4, 5> intersectInfo = {vec4(0), vec4(0), vec4(0), vec4(0), vec4(0)};
+    manager->queue.writeBuffer(intersectionBuffer.buffer, 0, intersectInfo.data(), 5*sizeof(vec4));
+    waitForQueueCompletion(manager->device, manager->queue);
 }
 
 void MarchingCubes::Raycaster::InitializeWithDependencies() {
@@ -43,8 +44,14 @@ void MarchingCubes::Raycaster::RayFieldIntersect(vec3 origin, vec3 direction, ve
     *outPosition = intersectionData[0];
     *outFrame = mat3x3(
                     vec3(intersectionData[2]),
-                    vec3(intersectionData[0]),
+                    vec3(intersectionData[3]),
                     vec3(intersectionData[1])
                 );
     BufferHelper::Unmap();
+}
+
+void MarchingCubes::Raycaster::SendOffset(vec2 offset) {
+    vec4 offsetSend = vec4(offset.x, offset.y, 0.0f, 0.0f);
+    manager->queue.writeBuffer(intersectionBuffer.buffer, sizeof(vec4) * 4, &offset, sizeof(vec4));
+    waitForQueueCompletion(manager->device, manager->queue);
 }

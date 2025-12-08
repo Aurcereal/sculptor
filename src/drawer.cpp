@@ -47,6 +47,8 @@ void MarchingCubes::Drawer::Initialize(TextureFormat surfaceFormat) {
 
     std::cout << "Initialized Drawer" << std::endl;
     initialized = true;
+
+    waitForQueueCompletion(manager->device, manager->queue);
 }
 
 void MarchingCubes::Drawer::UpdateIndexCount() {

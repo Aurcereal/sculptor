@@ -31,6 +31,7 @@ void MarchingCubes::MeshGenerator::Initialize() {
 void MarchingCubes::MeshGenerator::ResetCountBuffer() {
     vector<uint32_t> counts = {0,0};
     manager->queue.writeBuffer(countBuffer.buffer, 0, counts.data(), countBuffer.size);
+    waitForQueueCompletion(manager->device, manager->queue);
 }
 
 void MarchingCubes::MeshGenerator::GenerateMesh() {

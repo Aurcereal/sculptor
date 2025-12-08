@@ -162,6 +162,7 @@ namespace MarchingCubes {
         BufferHolder intersectionBuffer;
 
         void ResetIntersectionBuffer();
+        void SendOffset(vec2);
 
     private:
         Manager *manager;

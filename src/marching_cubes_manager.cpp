@@ -50,6 +50,7 @@ void MarchingCubes::CursorOperator::Update(vec3 pos, mat3x3 frame) {
     currOffset += vec2(lDelta.x, lDelta.y);
 
     std::cout << "X: " << currOffset.x << " Y: " << currOffset.y << std::endl;
+    manager->raycaster.SendOffset(currOffset);
 
     prevPos = pos;
     prevFrame = frame;

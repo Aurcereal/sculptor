@@ -7,7 +7,7 @@ struct RaycastInput {
     writeNormal : u32
 };
 @group(0) @binding(2) var<uniform> raycastInput : RaycastInput;
-@group(0) @binding(3) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm, ri, up)
+@group(0) @binding(3) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm, ri, up, offset)
 
 struct Parameters {
     texRes : u32,

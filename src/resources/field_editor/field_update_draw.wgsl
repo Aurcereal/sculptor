@@ -347,10 +347,12 @@ fn getPaintColor(p: vec3f, currAmt: f32) -> vec4f {
             else { return vec4f(u_BrushParameters.color+(1.-val)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
         case PT_CHECKER: {
-            let size = 0.2;
-            let id = floor(p/size);
-            let exists = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
-            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color, exists*currAmt); }
+            let sp = intersectionBuffer[4].xy*20.; // y's weird
+            let size = 0.2*40.;
+            let id = floor(sp/size);
+            let exists = step(abs(fmod(id.x+id.y, 2.)-1.), 0.5);
+            // let exists = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
+            if(bool(u_Parameters.paintMode)) { return vec4f(u_BrushParameters.color * vec3f(sin(sp.y), 0.,0.), exists*currAmt); }
             else { return vec4f(u_BrushParameters.color+(1.-exists)*(vec3f(1.)-2.*u_BrushParameters.color), currAmt); }
         }
     }
