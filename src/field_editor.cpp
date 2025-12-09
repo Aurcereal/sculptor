@@ -13,6 +13,8 @@ void MarchingCubes::FieldEditor::Initialize() {
     fieldColorTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::RGBA8Unorm, true, true);
     fieldColorScratchTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::RGBA8Unorm, true, true);
 
+    fieldIntersectionTexture.Initialize(manager->device, uvec3(manager->guiToParams.parameters.textureResolution), TextureFormat::R32Float, true, true);
+
     //
     vector<ShaderParameter::Parameter> params = {
         SP::Parameter(SP::UTexture{&fieldTexture, true, true}),
@@ -33,6 +35,13 @@ void MarchingCubes::FieldEditor::Initialize() {
         SP::Parameter(SP::UTexture{&fieldColorTexture, true, true})
     };
     copybackShader.Initialize(manager->device, copybackParams, "./field_editor/copy_back.wgsl");
+
+    //
+    vector<ShaderParameter::Parameter> copyToIntersectionParams = {
+        SP::Parameter(SP::UTexture{&fieldTexture, true, false}),
+        SP::Parameter(SP::UTexture{&fieldIntersectionTexture, true, true}),
+    };
+    copyToIntersectionTexture.Initialize(manager->device, copyToIntersectionParams, "./field_editor/copy_back_no_color.wgsl");
     
     //
     vector<ShaderParameter::Parameter> drawUpdateParams = {
@@ -72,6 +81,10 @@ void MarchingCubes::FieldEditor::UpdateField() {
 
 void MarchingCubes::FieldEditor::CopyScratchToField() {
     copybackShader.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
+}
+
+void MarchingCubes::FieldEditor::CopyToIntersectionTexture() {
+    copyToIntersectionTexture.DispatchSync(manager->device, manager->queue, uvec3(manager->guiToParams.parameters.textureResolution));
 }
 
 void MarchingCubes::FieldEditor::Destroy() {

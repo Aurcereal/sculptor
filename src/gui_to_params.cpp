@@ -175,6 +175,11 @@ void MarchingCubes::GUIToParams::MainLoop() {
     if(CollapsingHeader("Advanced")) {
         Indent();
         Checkbox("Update Brush Direction While Pressed", &manager->continuouslyUpdateBrushOrientation);
+        
+        // TODO: Is changed by system depending on brush, maybe not user changeable
+        if(Checkbox("Intersection Volume Only Generated On Click", &manager->intersectionTextureGeneratedOnlyOnClick)) {
+            manager->raycaster.InitializeWithDependencies(); // Change Used Intersection Texture
+        }
 
         bool leveledMode = manager->guiToParams.parameters.leveledMode == 1;
         if(Checkbox("Leveled Mode", &leveledMode)) {

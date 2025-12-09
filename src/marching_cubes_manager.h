@@ -207,6 +207,9 @@ namespace MarchingCubes {
         TextureHolder fieldScratchTexture;
         TextureHolder fieldColorScratchTexture;
 
+        TextureHolder fieldIntersectionTexture;
+        void CopyToIntersectionTexture();
+
         void Destroy();
 
     private:
@@ -219,6 +222,8 @@ namespace MarchingCubes {
 
         ComputeShader copybackShader; 
         void CopyScratchToField(); // Copy fieldScratchTexture -> fieldTexture
+
+        ComputeShader copyToIntersectionTexture;
 
         ComputeShader fieldDrawUpdater;
         
@@ -307,6 +312,7 @@ namespace MarchingCubes {
 
         float boundingBoxScale;
         bool continuouslyUpdateBrushOrientation = true;
+        bool intersectionTextureGeneratedOnlyOnClick = false;
 
         void MainLoop();
 

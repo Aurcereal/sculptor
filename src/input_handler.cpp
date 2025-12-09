@@ -1,6 +1,10 @@
 #include "marching_cubes_manager.h"
 
 void MarchingCubes::InputHandler::OnLMouseClick(vec2 pos) {
+    if(manager->intersectionTextureGeneratedOnlyOnClick) {
+        manager->fieldEditor.CopyToIntersectionTexture();
+    }
+
     mouseDown = true;
     vec3 rd = manager->camera.Raycast(pos);
 
