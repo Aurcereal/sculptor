@@ -198,6 +198,7 @@ const ST_COMB: u32 = 6;
 const ST_CUBECOMB: u32 = 7;
 const ST_BUMPY: u32 = 8;
 const ST_VORONOI: u32 = 9;
+const ST_SPIKY: u32 = 10;
 
 const PI: f32 = 3.141592;
 
@@ -254,25 +255,10 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             return 1.;
         }
         case ST_CHECKER: {
-            let sp = intersectionBuffer[4].xy;
-            let brushPos = intersectionBuffer[0].xyz;
-            let normFrame = mat3x3f(intersectionBuffer[2].xyz, intersectionBuffer[3].xyz, intersectionBuffer[1].xyz);
-            var lp = transpose(normFrame) * (p-brushPos);
-            lp += vec3f(sp,0.);
-
-            // lp *= vec3f(10.,10.,1.);
-            // let h = sin(lp.x)+cos(lp.y);
-            // let amt = h-lp.z;
-            let size = 0.14;
-            //lp = vec3f(rot2D(lp.z*3.5) * lp.xy, lp.z);
-            let lmp = vec3f(vec2f(lp.xy-floor(lp.xy/size)*size-size*.5), lp.z);
-            let dCone = sdCone(lmp.xzy*vec3f(1.,0.1,1.), vec2f(0.08, 0.1*3.));
-            let amt = u_Parameters.marchingCubesThreshold-5.*5.*dCone;
-            return amt;
-            // let size = 0.2;
-            // let id = floor(p/size);
-            // let parity = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
-            // return parity;
+            let size = 0.2;
+            let id = floor(p/size);
+            let parity = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
+            return parity;
         }
         case ST_POLKADOT: {
             let size = 0.25;
@@ -312,6 +298,21 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
         }
         case ST_VORONOI: {
             return voronoi(p*3.)*1.25*1.5-1. - 1.5-.5;
+        }
+        case ST_SPIKY: {
+
+            let sp = intersectionBuffer[4].xy;
+            let brushPos = intersectionBuffer[0].xyz;
+            let normFrame = mat3x3f(intersectionBuffer[2].xyz, intersectionBuffer[3].xyz, intersectionBuffer[1].xyz);
+            var lp = transpose(normFrame) * (p-brushPos);
+            lp += vec3f(sp,0.);
+            let size = 0.14*0.8;
+            //lp = vec3f(rot2D(0.8*(noise(lp*2.)*2.-1.)) * lp.xy, lp.z);
+            //lp = vec3f(lp.x, rot2D(0.8*(noise(lp*2.+20.)*2.-1.))*lp.yz);
+            let lmp = vec3f(vec2f(lp.xy-floor(lp.xy/size)*size-size*.5), lp.z);
+            let dCone = sdCone(lmp.xzy*vec3f(1.,0.1,1.), vec2f(0.08*1.4, 0.1*3.));
+            let amt = u_Parameters.marchingCubesThreshold-5.*5.*dCone;
+            return amt;
         }
     }
 }
