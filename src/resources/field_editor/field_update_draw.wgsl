@@ -223,6 +223,10 @@ fn rot(v: vec3f, o: f32) -> mat4x4f {
         );
 }
 
+fn rot2D(o: f32) -> mat2x2f {
+    return mat2x2f(cos(o), sin(o), -sin(o), cos(o));
+}
+
 fn createFrame(fo: vec3f) -> mat3x3f {
     let up1 = vec3f(0.,1.,0.);
     let up2 = vec3f(0.,0.,1.);
@@ -255,9 +259,16 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
             let normFrame = mat3x3f(intersectionBuffer[2].xyz, intersectionBuffer[3].xyz, intersectionBuffer[1].xyz);
             var lp = transpose(normFrame) * (p-brushPos);
             lp += vec3f(sp,0.);
-            lp *= vec3f(10.,10.,1.);
-            let h = sin(lp.x)+cos(lp.y);
-            return h-lp.z;
+
+            // lp *= vec3f(10.,10.,1.);
+            // let h = sin(lp.x)+cos(lp.y);
+            // let amt = h-lp.z;
+            let size = 0.14;
+            //lp = vec3f(rot2D(lp.z*3.5) * lp.xy, lp.z);
+            let lmp = vec3f(vec2f(lp.xy-floor(lp.xy/size)*size-size*.5), lp.z);
+            let dCone = sdCone(lmp.xzy*vec3f(1.,0.1,1.), vec2f(0.08, 0.1*3.));
+            let amt = u_Parameters.marchingCubesThreshold-5.*5.*dCone;
+            return amt;
             // let size = 0.2;
             // let id = floor(p/size);
             // let parity = step(abs(fmod(id.x+id.y+id.z, 2.)-1.), 0.5);
@@ -408,7 +419,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
         switch u_BrushParameters.drawShape {
             case DS_SPHERE: {
                 r += length(lp);
-                falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness, 1.0, r/brushSize));
+                falloff = max(0., 1.-smoothstep(u_BrushParameters.brushHardness+.99*0., 1.0, r/brushSize)); // .99 on spikes, or can make falloff for things like grass have r be xy in local
             }
             case DS_CUBE: {
                 r += max(max(abs(lp.x), abs(lp.y)), abs(lp.z));
