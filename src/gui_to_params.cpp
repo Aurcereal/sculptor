@@ -8,7 +8,7 @@ void MarchingCubes::GUIToParams::Initialize(GUIManager *guiManager) {
     mat4x4 bbxTRS = glm::scale(mat4(1.0f), vec3(manager->boundingBoxScale)) * glm::translate(mat4(1.0f), vec3(-0.5f));
     mat4x4 bbxInverseTranspose = glm::transpose(glm::inverse(bbxTRS));
     mat4x4 bbxInvTRS = glm::translate(mat4(1.0f), vec3(0.5f)) * glm::scale(mat4(1.0f), vec3(1.0f/manager->boundingBoxScale));
-    parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0, 0, -1.0f, vec3(0,-1,0)};
+    parameters = {256, 32, 0.1f, 0, bbxTRS, bbxInvTRS, bbxInverseTranspose, 0, 0, 0, 1, vec3(0,-1,0), 8};
     brushParameters = {0, .02f, .9f, 0.0f, vec3(0.3f,0.3f,0.4f), 0, 0, 0, 1};
     cameraTimeParameters = {manager->camera.GetProjectionMatrix(), manager->camera.GetViewMatrix(), mat4(1.0f), 0.0f};
 
@@ -148,6 +148,19 @@ void MarchingCubes::GUIToParams::MainLoop() {
             }
         }
         EndPopup();
+    }
+
+    bool cylMirror = parameters.cylindricalMirror == 1;
+    if(Checkbox("Cylindrical Mirror", &cylMirror)) {
+        parameters.cylindricalMirror = cylMirror ? 1 : 0;
+        manager->uniformManager.UpdateParameters();
+    }
+    if(cylMirror) {
+        int cylCount = static_cast<int>(parameters.cylindricalMirrorCount);
+        if(SliderInt("Cylinder Count", &cylCount, 2, 32)) {
+            parameters.cylindricalMirrorCount = static_cast<uint32>(cylCount);
+            manager->uniformManager.UpdateParameters();
+        }
     }
 
     ImGui::SeparatorText("Settings");

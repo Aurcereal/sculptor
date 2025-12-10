@@ -15,7 +15,10 @@ struct Parameters {
     bbxInverseTranspose : mat4x4f, // Should be mat3x3 but alignment isn't working somehow
     mirrorX : u32,
     paintMode : u32,
-    lightDirection : vec3f
+    leveledMode : u32,
+    cylindricalMirror : u32,
+    lightDirection : vec3f,
+    cylindricalMirrorCount : u32
 };
 @group(0) @binding(6) var<uniform> u_Parameters : Parameters;
 @group(0) @binding(7) var<storage, read_write> intersectionBuffer: array<vec4f>; // (hitPos, norm)
@@ -204,6 +207,8 @@ const PI: f32 = 3.141592;
 
 fn fmod(x: f32, y: f32) -> f32 { return x - y * floor(x / y); }
 fn vmod(x: vec3f, y: vec3f) -> vec3f { return x - y * floor(x / y); }
+fn toPolar(v : vec2f) -> vec2f { return vec2f(length(v), fmod(atan2(v.y, v.x), 2.*PI));}
+fn toCartesian(v : vec2f) -> vec2f { return v.x * vec2f(cos(v.y), sin(v.y)); }
 
 fn borderFalloff(uv: vec3f) -> f32 {
     let ds = vec3f(0.5) - abs(uv-vec3f(0.5));
@@ -399,6 +404,21 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             let mirrorDir = step(0.5, (u_Parameters.bbxInvTRS * pos).x)*2.-1.;
             mirrorAlignment = mirrorDir*sign(uv.x-0.5);
             uv.x = 0.5+mirrorDir*abs(uv.x-0.5);
+        }
+        if(bool(u_Parameters.cylindricalMirror)) {
+            let count = f32(u_Parameters.cylindricalMirrorCount);
+            let repSize = 2.*PI/count;
+
+            let cursorP = (u_Parameters.bbxInvTRS * pos).xyz-.5;
+            var thetaCursor = toPolar(cursorP.xz).y;
+            thetaCursor = floor(thetaCursor/repSize)*repSize;
+
+            let currP = uv-.5;
+            var polarP = toPolar(currP.xz);
+            polarP.y = thetaCursor+fmod(polarP.y, repSize);
+            let trP2D = toCartesian(polarP);
+            let trP = vec3f(trP2D.x, currP.y, trP2D.y);
+            uv = trP+.5;
         }
         var p = (u_Parameters.bbxTRS * vec4f(uv, 1.0)).xyz;
 
