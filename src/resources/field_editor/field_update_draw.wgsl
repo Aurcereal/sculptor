@@ -400,6 +400,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     if(pos.a > 0.1) {
         var uv = (vec3f(id.xyz)/f32(u_Parameters.texRes));
         var mirrorAlignment = 1.;
+        var cylMirrorThetaDiff = 0.;
         if(bool(u_Parameters.mirrorX)) {
             let mirrorDir = step(0.5, (u_Parameters.bbxInvTRS * pos).x)*2.-1.;
             mirrorAlignment = mirrorDir*sign(uv.x-0.5);
@@ -411,11 +412,13 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 
             let cursorP = (u_Parameters.bbxInvTRS * pos).xyz-.5;
             var thetaCursor = toPolar(cursorP.xz).y;
-            thetaCursor = floor(thetaCursor/repSize)*repSize;
+            let thetaIDCursor = floor(thetaCursor/repSize)*repSize;
 
             let currP = uv-.5;
             var polarP = toPolar(currP.xz);
-            polarP.y = thetaCursor+fmod(polarP.y, repSize);
+            let thetaIDP = floor(polarP.y/repSize)*repSize;
+            cylMirrorThetaDiff = thetaIDP-thetaIDCursor;
+            polarP.y = thetaIDCursor+(polarP.y-thetaIDP);
             let trP2D = toCartesian(polarP);
             let trP = vec3f(trP2D.x, currP.y, trP2D.y);
             uv = trP+.5;
@@ -483,12 +486,33 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
             case BT_TWIRL: {
                 let rp = brushPos + (rot(norm, 2.5*sculptAmt) * vec4f(p-brushPos, 1.)).xyz;
                 var ruv = (u_Parameters.bbxInvTRS * vec4f(rp, 1.)).xyz;
-                ruv.x = 0.5+mirrorAlignment*(ruv.x-0.5);
+                if(bool(u_Parameters.mirrorX)) {
+                    ruv.x = 0.5+mirrorAlignment*(ruv.x-0.5);
+                } else if(bool(u_Parameters.cylindricalMirror)) {
+                    let count = f32(u_Parameters.cylindricalMirrorCount);
+                    let repSize = 2.*PI/count;
+
+                    var ruvPolar = toPolar(ruv.xz-.5);
+                    ruvPolar.y += cylMirrorThetaDiff;
+                    let ruvCart = toCartesian(ruvPolar)+.5;
+                    ruv = vec3f(ruvCart.x, ruv.y, ruvCart.y);
+                }
                 newSculptVal = borderFalloff(ruv) * textureSampleLevel(inputTexture, fieldSampler, ruv+vec3f(0.5)/f32(u_Parameters.texRes), 0.).r; 
 
                 let rpCol = brushPos + (rot(norm, 2.5*amt) * vec4f(p-brushPos, 1.)).xyz;
                 var ruvCol = (u_Parameters.bbxInvTRS * vec4f(rpCol, 1.)).xyz;
-                ruvCol.x = 0.5+mirrorAlignment*(ruvCol.x-0.5);
+                
+                if(bool(u_Parameters.mirrorX)) {
+                    ruvCol.x = 0.5+mirrorAlignment*(ruvCol.x-0.5);
+                } else if(bool(u_Parameters.cylindricalMirror)) {
+                    let count = f32(u_Parameters.cylindricalMirrorCount);
+                    let repSize = 2.*PI/count;
+
+                    var ruvPolar = toPolar(ruvCol.xz-.5);
+                    ruvPolar.y += cylMirrorThetaDiff;
+                    let ruvCart = toCartesian(ruvPolar);
+                    ruvCol = vec3f(ruvCart.x, ruv.y, ruvCart.y)+.5;
+                }
                 newCol = textureSampleLevel(inputColorTexture, fieldColorSampler, ruvCol+vec3f(0.5)/f32(u_Parameters.texRes), 0.);
             }
             default: {}
