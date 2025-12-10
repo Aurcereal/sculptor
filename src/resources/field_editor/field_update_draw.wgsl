@@ -301,17 +301,20 @@ fn intersectSculptTexture(p: vec3f) -> f32 {
         }
         case ST_SPIKY: {
 
+            let bendAmount = 10.; // 15
+
             let sp = intersectionBuffer[4].xy;
             let brushPos = intersectionBuffer[0].xyz;
             let normFrame = mat3x3f(intersectionBuffer[2].xyz, intersectionBuffer[3].xyz, intersectionBuffer[1].xyz);
             var lp = transpose(normFrame) * (p-brushPos);
             lp += vec3f(sp,0.);
             let size = 0.14*0.8;
-            //lp = vec3f(rot2D(0.8*(noise(lp*2.)*2.-1.)) * lp.xy, lp.z);
-            //lp = vec3f(lp.x, rot2D(0.8*(noise(lp*2.+20.)*2.-1.))*lp.yz);
-            let lmp = vec3f(vec2f(lp.xy-floor(lp.xy/size)*size-size*.5), lp.z);
+            var lmp = vec3f(vec2f(lp.xy-floor(lp.xy/size)*size-size*.5), lp.z);
+            let o = noise(lp*2.)*10.; let v = vec3f(cos(o), sin(o), 0.); let bend = rot(v, bendAmount*lmp.z); lmp = (bend * vec4f(lmp,1.)).xyz;
+            //lmp = vec3f(rot2D(10.*.8*(noise(lp*2.)*2.-1.)) * lmp.xy, lmp.z);
+            //lmp = vec3f(lmp.x, rot2D(10.*0.8*(noise(lp*2.+20.)*2.-1.))*lmp.yz);
             let dCone = sdCone(lmp.xzy*vec3f(1.,0.1,1.), vec2f(0.08*1.4, 0.1*3.));
-            let amt = u_Parameters.marchingCubesThreshold-5.*5.*dCone;
+            let amt = -25.*dCone;//u_Parameters.marchingCubesThreshold-5.*5.*5.*dCone;
             return amt;
         }
     }
